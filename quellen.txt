@@ -1,0 +1,26 @@
+ Aufgabe 1:
+ Einführung in den Kurs/Aufgabe: Edzard Höfig, "21WS GG - 12 Tipps" auf YouTube https://www.youtube.com/watch?v=jq4EUSCMPXg
+ Grundgrüst mit: Daniel Shiffman, https://natureofcode.com/random/#a-smoother-approach-with-perlin-noise
+ Funktionen finden und verstehen auf: p5js.org
+ Bild von Geist: https://svgcollections.com/design/simple-ghost-svg-design-2/
+ Bild bearbeitet mit: Photopea
+
+ Aufgabe 2:
+ Code
+ Funktion "shuffleArray": https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+ Mausklick auf Objekt: https://www.youtube.com/watch?v=DEHsr4XicN8
+ drawBgImage(): ChatGPT
+
+ Sounds
+ Sound Spooky Wind: https://pixabay.com/sound-effects/spooky-wind-70657/
+ Balloon Pop: https://pixabay.com/sound-effects/balloon-tunnel-83749/
+ Birds: https://pixabay.com/sound-effects/singing-club-of-birds-nature-sound-204240/
+ BG sound Ghosts: https://pixabay.com/sound-effects/ghosts-and-monsters-horror-sounds-8237/
+
+ Bilder
+ Curser Stecknadel: https://pixabay.com/de/vectors/nadel-notiz-heften-pin-2936448/
+ Baum: https://svgcollections.com/design/pine-tree-silhouette-svg-2/
+
+ Sonstiges:
+ Bild bearbeitet mit Photopea
+ Hintergrund / Start-/Endbild mit Figma

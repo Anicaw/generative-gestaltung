@@ -1,0 +1,16 @@
+body {
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.ghost {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+}
+
+canvas {
+    cursor: url('http://www.rw-designer.com/cursor-extern.php?id=75516'), auto;
+
+}
