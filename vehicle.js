@@ -1,12 +1,23 @@
 function Vehicle(x, y) {
-    this.pos = createVector(random(width), random(height))
+    let startSide = floor(random(4));
+    switch (startSide){
+        case 0: this.pos = createVector(random(width), -50)
+        break
+        case 1: this.pos = createVector(random(width), height + 50)
+        break
+        case 2: this.pos = createVector(-50, random(height))
+        break
+        case 3: this.pos = createVector(width + 50, random(height))
+        break
+    }
+    // this.pos = createVector(random(width), random(height))
     this.target = createVector(x, y)
     this.vel = createVector()
     this.acc = createVector()
     this.r = 8
-    this.maxspeed = 10
+    this.maxspeed = 3
     this.maxforce = 1
-    this.alpha = 255
+    this.alpha = 0
 }
 
 Vehicle.prototype.behaviors = function (tempTarget) {
@@ -30,25 +41,35 @@ Vehicle.prototype.update = function () {
     let n = noise(this.pos.x * 0.005, this.pos.y * 0.005, frameCount * 0.002)
     let angle = map(n, 0, 1, -3, 5)
     let wind = p5.Vector.fromAngle(angle).mult(0.8)
-    this. applyForce(wind)
+    this.applyForce(wind)
+
+    // let breathingOffset = p5.Vector.random2D().mult(sin(frameCount * 0.02) * 2)
+    // let dynamicTarget = this.target.copy().add(breathingOffset)
+
+    // let arriveForce = this.arrive(dynamicTarget)
+    // this.applyForce(arriveForce)
 
     this.pos.add(this.vel)
     this.vel.add(this.acc)
     this.acc.mult(0)
 
     let d = p5.Vector.dist(this.pos, this.target)
-    this.alpha = map(d, 0, 200, 255, 0, true) //true
-    
+    this.alpha = map(d, 0, 300, 255, 0, true) //true
+
     let breathing = sin(frameCount * 0.01) * 0.5 + 0.5
     this.alpha *= breathing
+
 }
 
 Vehicle.prototype.show = function () {
-    stroke(180, 220, 255, 180)
-    strokeWeight(4)
+    let hue = map(this.pos.x, 0, width, 180, 240)
+
+    stroke(hue, 200, 255, this.alpha)
+    
+    strokeWeight(2)
     point(this.pos.x, this.pos.y)
 
-    stroke(180, 220, 255, this.alpha * 0.2)
+    stroke(180, 220, 255, this.alpha * 0.1)
     strokeWeight(10)
     point(this.pos.x, this.pos.y)
 }
