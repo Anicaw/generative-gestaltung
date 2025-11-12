@@ -6,7 +6,7 @@ var zoff = 0;
 
 var fr;
 
-// var particles = []
+var particles = []
 var particlesLayers = []
 
 var flowfield = []
@@ -19,49 +19,42 @@ let zCounter = 0
 
 let ghost = []
 // Anzahl der Geister
-let amountGhosts = 2
+let amountGhosts = 10
 
 let trees = []
 let treePos = []
+// Anzahl der Bäume
 let numTrees = 20
 
 //images
+let bgForest
 let ghostImg
 let pineTree
-let bgForest
-let pin
 let bgGhost
 let bgFriendly
 // sounds
+let soundForest
 let soundBgGhosts
 let soundCatchGhost
-let soundForest
-let soundBalloon
 let soundBirds
+
 function preload() {
     bgForest = loadImage('./images/Frame1.png');
     ghostImg = loadImage('./images/real_ghost.png')
     pineTree = loadImage('./images/pine_tree.png')
     bgGhost = loadImage('./images/bgGhost.png')
     bgFriendly = loadImage('./images/friendly_bg.png')
-    soundForest = loadSound("./assets/spooky-wind.mp3")
-    soundBgGhosts = loadSound("./assets/ghost-bg.mp3")
-    soundCatchGhost = loadSound("./assets/balloon-pop.mp3")
-    soundBirds = loadSound("./assets/birds.mp3")
+    soundForest = loadSound("./sounds/spooky-wind.mp3")
+    soundBgGhosts = loadSound("./sounds/ghost-bg.mp3")
+    soundCatchGhost = loadSound("./sounds/balloon-pop.mp3")
+    soundBirds = loadSound("./sounds/birds.mp3")
 }
 
 
 function setup() {
     createCanvas(windowWidth, windowHeight)
 
-    // gibt zufällige Position von den Bäumen
-    for (let i = 0; i < numTrees; i++) {
-        let x = random(0, 800);
-        let y = random(50, 300);
-        treePos.push({ x: x, y: y });
-    }
-
-    // fügt Bäume in Array trees[]
+    // fügt Bäume mit zufälliger Position in Array trees[]
     for (var i = 0; i < numTrees; i++) {
         trees[i] = new Tree(random(0, windowWidth), random(50, 300), zCounter)
         zCounter++
@@ -80,9 +73,9 @@ function setup() {
         zCounter++
     }
 
+    // 
     fillObjectArrays()
     shuffleArray(allObjects)
-
     createParticlesArray()
 }
 
@@ -98,7 +91,7 @@ function fillObjectArrays() {
     allObjects.sort((a, b) => a.z - b.z);
 }
 
-// mischt Array von Objekten, um Reihenfolge der Objekte zu bestimmen ("z-index")
+// mischt Array von Objekten, um später die Reihenfolge der Objekte zu bestimmen ("z-index")
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
