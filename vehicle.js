@@ -61,17 +61,17 @@ Vehicle.prototype.update = function () {
 
 }
 
-Vehicle.prototype.show = function () {
+Vehicle.prototype.show = function (layer) {
     let hue = map(this.pos.x, 0, width, 180, 240)
 
-    stroke(hue, 200, 255, this.alpha)
+    layer.stroke(hue, 200, 255, this.alpha)
     
-    strokeWeight(2)
-    point(this.pos.x, this.pos.y)
+    layer.strokeWeight(2)
+    layer.point(this.pos.x, this.pos.y)
 
-    stroke(180, 220, 255, this.alpha * 0.1)
-    strokeWeight(10)
-    point(this.pos.x, this.pos.y)
+    layer.stroke(180, 220, 255, this.alpha * 0.1)
+    layer.strokeWeight(10)
+    layer.point(this.pos.x, this.pos.y)
 }
 
 Vehicle.prototype.arrive = function (target) {

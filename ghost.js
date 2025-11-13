@@ -4,10 +4,10 @@ function Ghost(z) {
     this.vel = p5.Vector.random2D()
     // this.vel = createVector(0, 0)
     this.acc = createVector(0, 0)
-    this.maxspeed = 50
+    this.maxspeed = 1
     this.z = z
 
-    this.ghostSize = 50
+    this.ghostSize = 150
 
     this.update = function() {
         this.vel.add(this.acc)
@@ -20,11 +20,11 @@ function Ghost(z) {
         this.acc.add(force)
     }
 
-    this.show = function() {
-        push()
-        noStroke()
-        image(ghostImg, this.pos.x, this.pos.y, this.ghostSize, this.ghostSize)
-        pop()
+    this.show = function(layer) {
+        layer.push()
+        layer.noStroke()
+        layer.image(ghostImg, this.pos.x, this.pos.y, this.ghostSize, this.ghostSize)
+        layer.pop()
     }
 
     this.edges = function() {
