@@ -43,20 +43,14 @@ Vehicle.prototype.update = function () {
     let wind = p5.Vector.fromAngle(angle).mult(0.8)
     this.applyForce(wind)
 
-    // let breathingOffset = p5.Vector.random2D().mult(sin(frameCount * 0.02) * 2)
-    // let dynamicTarget = this.target.copy().add(breathingOffset)
-
-    // let arriveForce = this.arrive(dynamicTarget)
-    // this.applyForce(arriveForce)
-
     this.pos.add(this.vel)
     this.vel.add(this.acc)
     this.acc.mult(0)
 
     let d = p5.Vector.dist(this.pos, this.target)
-    this.alpha = map(d, 0, 300, 255, 0, true) //true
+    this.alpha = map(d, 0, 300, 255, 0, true)
 
-    let breathing = sin(frameCount * 0.01) * 0.5 + 0.5
+    let breathing = sin(frameCount * 0.01) * 0.49 + 0.52
     this.alpha *= breathing
 
 }
@@ -66,11 +60,11 @@ Vehicle.prototype.show = function (layer) {
 
     layer.stroke(hue, 200, 255, this.alpha)
     
-    layer.strokeWeight(2)
+    layer.strokeWeight(5)
     layer.point(this.pos.x, this.pos.y)
 
     layer.stroke(180, 220, 255, this.alpha * 0.1)
-    layer.strokeWeight(10)
+    layer.strokeWeight(13)
     layer.point(this.pos.x, this.pos.y)
 }
 

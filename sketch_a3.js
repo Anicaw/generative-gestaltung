@@ -16,13 +16,17 @@ let amountGhosts = 3
 let ghostLayer
 let particleLayer
 
+let soundWhisper
+
 function preload() {
     font = loadFont("./assets/Bellota/Bellota-Regular.ttf")
     ghostImg = loadImage('./images/real_ghost.png')
+    soundWhisper = loadSound('./sounds/whisper.mp3')
 }
 
 function setup() {
     createCanvas(windowWidth, windowHeight)
+    soundWhisper.loop()
     ghostLayer = createGraphics(width, height)
     particleLayer = createGraphics(width, height)
     
@@ -41,13 +45,13 @@ function setup() {
 
     // createGhosts()
 
-    var points = font.textToPoints('WHISPER', 30, 200, 170)
+    // var points = font.textToPoints('WHISPER', 30, 200, 170)
 
-    for (var i = 0; i < points.length; i++) {
-        var pt = points[i]
-        var vehicle = new Vehicle(pt.x, pt.y)
-        vehicles.push(vehicle)
-    }
+    // for (var i = 0; i < points.length; i++) {
+    //     var pt = points[i]
+    //     var vehicle = new Vehicle(pt.x, pt.y)
+    //     vehicles.push(vehicle)
+    // }
 
     innerGraphic = createGraphics(width, height);
     innerGraphic.textFont(font);
@@ -55,7 +59,7 @@ function setup() {
     innerGraphic.text('WHISPER', 30, 200);
     innerGraphic.loadPixels();
 
-    for (let i = 0; i < 20000; i++) {
+    for (let i = 0; i < 40000; i++) {
         let x = random(width);
         let y = random(height);
         let index = (int(x) + int(y) * width) * 4;
