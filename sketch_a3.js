@@ -20,6 +20,7 @@ let soundWhisper
 
 function preload() {
     font = loadFont("./assets/Bellota/Bellota-Regular.ttf")
+    font = loadFont("./assets/Shadows/ShadowsIntoLightTwo-Regular.ttf")
     ghostImg = loadImage('./images/real_ghost.png')
     soundWhisper = loadSound('./sounds/whisper.mp3')
 }
@@ -56,6 +57,7 @@ function setup() {
     innerGraphic = createGraphics(width, height);
     innerGraphic.textFont(font);
     innerGraphic.textSize(170);
+    
     innerGraphic.text('WHISPER', 30, 200);
     innerGraphic.loadPixels();
 
