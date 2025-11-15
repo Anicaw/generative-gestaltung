@@ -14,10 +14,8 @@ function Vehicle(x, y) {
     this.target = createVector(x, y)
     this.vel = createVector()
     this.acc = createVector()
-    // this.r = 8
     this.maxspeed = 3
     this.maxforce = 1.8
-    // this.alpha = 10
 }
 
 Vehicle.prototype.behaviors = function () {
@@ -32,7 +30,8 @@ Vehicle.prototype.behaviors = function () {
 
     // Partikel werden von Geist angezogen
     for(let g of ghosts){
-        var attract = this.attract(g.pos)
+        let ghostMouth = createVector(g.pos.x + g.ghostSize*0.5, g.pos.y+g.ghostSize*0.5)
+        var attract = this.attract(ghostMouth)
         this.applyForce(attract)
     } 
 }
@@ -56,10 +55,11 @@ Vehicle.prototype.update = function () {
     let d = p5.Vector.dist(this.pos, this.target)
     this.alpha = map(d, 0, 500, 255, 5, true)
 
+    // damit die Partikel mal sichtbar sind und dann wieder leicht verschwinden
+    this.alpha = map(sin(frameCount * 0.01), -1, 1, 0.5, 255)
 }
 
 Vehicle.prototype.show = function (layer) {
-    // leichter Farbverlauf von Links nach Rechts
     let hue = map(this.pos.x, 0, width, 180, 240)
 
     // inneres Partikel

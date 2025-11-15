@@ -4,10 +4,10 @@ function Ghost(z) {
     this.vel = p5.Vector.random2D()
     // this.vel = createVector(0, 0)
     this.acc = createVector(0, 0)
-    this.maxspeed = 1
+    this.maxspeed = 5
     this.z = z
 
-    this.ghostSize = 150
+    this.ghostSize = 200
 
     this.update = function() {
         this.vel.add(this.acc)
@@ -31,15 +31,15 @@ function Ghost(z) {
         if(this.pos.x > width - this.ghostSize/2) {
             this.pos.x = width - this.ghostSize/2
             this.vel.x *= -1
-        } else if(this.pos.x < this.ghostSize/2) {
-            this.pos.x = this.ghostSize/2
+        } else if(this.pos.x < 0) {
+            this.pos.x = 0
             this.vel.x *= -1
         }
-        if(this.pos.y > height - this.ghostSize/2) {
-            this.pos.y = height - this.ghostSize/2
+        if(this.pos.y > height - this.ghostSize) {
+            this.pos.y = height - this.ghostSize
             this.vel.y *= -1
-        } else if(this.pos.y < this.ghostSize/2){
-            this.pos.y = this.ghostSize/2
+        } else if(this.pos.y < 0){
+            this.pos.y = 0
             this.vel.y *= -1
         }
     }

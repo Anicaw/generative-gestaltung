@@ -2,7 +2,6 @@ var inc = 0.1;
 var scl = 20;
 var cols, rows
 var zoff = 0;
-// var yoff = 0;
 
 var font
 var fontSize = 150
@@ -38,7 +37,7 @@ function setup() {
     rows = floor(height / scl);
     flowfieldGhost = new Array(cols * rows)
 
-    // fügt Geister in Array ghost[]
+    // fügt Geister in Array ghosts[]
     for (var i = 0; i < amountGhosts; i++) {
         ghosts[i] = new Ghost(1)
     }
@@ -56,7 +55,7 @@ function setup() {
         let x = random(width);
         let y = random(height);
         let index = (int(x) + int(y) * width) * 4;
-        if (innerGraphic.pixels[index + 3] > 128) {
+        if (innerGraphic.pixels[index + 3] > 100) {
             vehicles.push(new Vehicle(x, y));
         }
     }
@@ -100,6 +99,7 @@ function draw() {
     }
 
     image(particleLayer, 0, 0)
+    // Geister durchsichtig
     tint(255, 50)
     image(ghostLayer, 0, 0)
     noTint()
