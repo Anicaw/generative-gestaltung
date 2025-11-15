@@ -2,9 +2,10 @@ var inc = 0.1;
 var scl = 20;
 var cols, rows
 var zoff = 0;
-var yoff = 0;
+// var yoff = 0;
 
 var font
+var fontSize = 150
 var vehicles = []
 var innerGraphic;
 
@@ -19,9 +20,8 @@ let particleLayer
 let soundWhisper
 
 function preload() {
-    font = loadFont("./assets/Bellota/Bellota-Regular.ttf")
     font = loadFont("./assets/Shadows/ShadowsIntoLightTwo-Regular.ttf")
-    ghostImg = loadImage('./images/real_ghost.png')
+    ghostImg = loadImage('./images/ghost_lila.png')
     soundWhisper = loadSound('./sounds/whisper.mp3')
 }
 
@@ -33,7 +33,6 @@ function setup() {
     
     ghostLayer.colorMode(HSB, 360, 255, 255, 255)
     particleLayer.colorMode(HSB, 360, 255, 255, 255);
-    background(50)
 
     cols = floor(width / scl);
     rows = floor(height / scl);
@@ -44,28 +43,20 @@ function setup() {
         ghosts[i] = new Ghost(1)
     }
 
-    // createGhosts()
-
-    // var points = font.textToPoints('WHISPER', 30, 200, 170)
-
-    // for (var i = 0; i < points.length; i++) {
-    //     var pt = points[i]
-    //     var vehicle = new Vehicle(pt.x, pt.y)
-    //     vehicles.push(vehicle)
-    // }
-
     innerGraphic = createGraphics(width, height);
     innerGraphic.textFont(font);
-    innerGraphic.textSize(170);
+    innerGraphic.textSize(fontSize);
     
-    innerGraphic.text('WHISPER', 30, 200);
+    innerGraphic.text('WHISPER', 30, 150);
     innerGraphic.loadPixels();
 
+    // um Particel innerhalb der Schrift zu haben und nicht nur außen,
+    // prüft, ob innerhalb der Schrift schon ein Partikel ist, wenn nicht, füge dort eins hinzu
     for (let i = 0; i < 40000; i++) {
         let x = random(width);
         let y = random(height);
         let index = (int(x) + int(y) * width) * 4;
-        if (innerGraphic.pixels[index + 3] > 128) {  // Pixel im Textbereich
+        if (innerGraphic.pixels[index + 3] > 128) {
             vehicles.push(new Vehicle(x, y));
         }
     }
@@ -80,7 +71,7 @@ function createGhosts() {
             var index = (x + y * cols)
             var angle = noise(xoffGhost, yoffGhost, zoff) * TWO_PI * 4
             var v = p5.Vector.fromAngle(angle)
-            v.setMag(0.1)
+            v.setMag(0.3)
             flowfieldGhost[index] = v
             xoffGhost += inc
         }
@@ -89,16 +80,9 @@ function createGhosts() {
     }
 }
 
-function drawGhosts(flowfieldGhost){
-    for (var i = 0; i < allObjects.length; i++) {
-        allObjects[i].drawObj(flowfieldGhost)
-    }
-}
-
 function draw() {
-    particleLayer.background(50, 20, 70, 25)
+    particleLayer.background(50, 20, 70, 10)
     ghostLayer.clear()
-    // particleLayer.blendMode(ADD)
 
     for (var i = 0; i < vehicles.length; i++) {
         var v = vehicles[i]
@@ -106,10 +90,7 @@ function draw() {
         v.behaviors(v.target.copy().add(offset))
         v.update()
         v.show(particleLayer)
-    }
-    createGhosts()
-
-    // ghostLayer.blendMode(ADD)
+    } 
     
     for (let g of ghosts) {
         g.follow(flowfieldGhost);
@@ -118,7 +99,8 @@ function draw() {
         g.show(ghostLayer);
     }
 
-
     image(particleLayer, 0, 0)
+    tint(255, 50)
     image(ghostLayer, 0, 0)
+    noTint()
 }
