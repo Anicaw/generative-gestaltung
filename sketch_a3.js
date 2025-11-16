@@ -26,10 +26,10 @@ function preload() {
 
 function setup() {
     createCanvas(windowWidth, windowHeight)
-    soundWhisper.loop()
+    // soundWhisper.loop()
     ghostLayer = createGraphics(width, height)
     particleLayer = createGraphics(width, height)
-    
+
     ghostLayer.colorMode(HSB, 360, 255, 255, 255)
     particleLayer.colorMode(HSB, 360, 255, 255, 255);
 
@@ -45,7 +45,7 @@ function setup() {
     innerGraphic = createGraphics(width, height);
     innerGraphic.textFont(font);
     innerGraphic.textSize(fontSize);
-    
+
     innerGraphic.text('WHISPER', 30, 150);
     innerGraphic.loadPixels();
 
@@ -79,28 +79,49 @@ function createGhosts() {
     }
 }
 
-function draw() {
-    particleLayer.background(50, 20, 70, 10)
-    ghostLayer.clear()
 
-    for (var i = 0; i < vehicles.length; i++) {
-        var v = vehicles[i]
-        let offset = p5.Vector.random2D().mult(0.5)
-        v.behaviors(v.target.copy().add(offset))
-        v.update()
-        v.show(particleLayer)
-    } 
-    
-    for (let g of ghosts) {
-        g.follow(flowfieldGhost);
-        g.update();
-        g.edges()
-        g.show(ghostLayer);
+function startScreen() {
+    background(0)
+    fill('white')
+    textFont("Eater")
+    textSize(30)
+    text('Klicke, um zu starten', windowWidth / 2 - 50, 90);
+}
+
+let started = false
+function mousePressed(){
+    started = true
+    if(!soundWhisper.isPlaying()){
+        soundWhisper.loop()
     }
+}
 
-    image(particleLayer, 0, 0)
-    // Geister durchsichtig
-    tint(255, 50)
-    image(ghostLayer, 0, 0)
-    noTint()
+function draw() {
+    if(!started){
+        startScreen()
+    } else {
+        particleLayer.background(50, 20, 70, 10)
+        ghostLayer.clear()
+    
+        for (var i = 0; i < vehicles.length; i++) {
+            var v = vehicles[i]
+            let offset = p5.Vector.random2D().mult(0.5)
+            v.behaviors(v.target.copy().add(offset))
+            v.update()
+            v.show(particleLayer)
+        }
+    
+        for (let g of ghosts) {
+            g.follow(flowfieldGhost);
+            g.update();
+            g.edges()
+            g.show(ghostLayer);
+        }
+    
+        image(particleLayer, 0, 0)
+        // Geister durchsichtig
+        tint(255, 50)
+        image(ghostLayer, 0, 0)
+        noTint()
+    }
 }
