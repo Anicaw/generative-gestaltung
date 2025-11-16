@@ -56,7 +56,7 @@ Vehicle.prototype.update = function () {
     this.alpha = map(d, 0, 500, 255, 5, true)
 
     // damit die Partikel mal sichtbar sind und dann wieder leicht verschwinden
-    this.alpha = map(sin(frameCount * 0.01), -1, 1, 0.5, 255)
+    this.alpha = map(sin(frameCount * 0.01), -1, 1, 5, 255)
 }
 
 Vehicle.prototype.show = function (layer) {
@@ -89,6 +89,7 @@ Vehicle.prototype.arrive = function (target) {
 
 
 // Funktion, damit Partikel von Geist angezogen wird
+// mit Hilfe von ChatGPT
 Vehicle.prototype.attract = function (target) {
     var desired = p5.Vector.sub(target, this.pos)
     var d = desired.mag()

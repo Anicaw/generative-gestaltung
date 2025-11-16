@@ -24,3 +24,14 @@
  Sonstiges:
  Bild bearbeitet mit Photopea
  Hintergrund / Start-/Endbild mit Figma
+
+ Aufgabe 3:
+ Sound
+ Whisper: https://pixabay.com/de/sound-effects/ghost-whispers-6030/
+
+ Code
+ Grundgrüst mit: Daniel Shiffman, "Codierungs-Challenge Nr. 59: Lenkverhalten" auf YouTube https://www.youtube.com/watch?v=4hA7G3gup-4&t=1s
+ Funktion attract in vehicle.js mit Hilfe von ChatGPT
+
+ Sonstiges
+ Geist ausgeschnitten mit Photopea

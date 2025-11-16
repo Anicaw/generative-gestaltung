@@ -11,7 +11,7 @@ var innerGraphic;
 let ghosts = []
 let ghostImg
 // Anzahl der Geister
-let amountGhosts = 3
+let amountGhosts = 5
 
 let ghostLayer
 let particleLayer
