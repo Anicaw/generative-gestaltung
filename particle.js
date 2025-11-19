@@ -17,11 +17,6 @@ function Particle(x, y, hu, firework){
     }
 
     this.update = function(){
-        if(this.target){
-            let dir = p5.Vector.sub(this.target, this.pos)
-            dir.setMag(0.5)
-            this.pos.add(dir)
-        }
         if(!this.firework){
             this.vel.mult(0.9)
             this.lifespan -= 4

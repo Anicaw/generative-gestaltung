@@ -1,11 +1,9 @@
-
 function Firework() {
 
     this.hu = random(255)
     this.firework = new Particle(random(width), height, this.hu, true)
     this.exploded = false
     this.particles = []
-    // this.target = null
 
     this.done = function() {
         if(this.exploded && this.particles.length === 0){
@@ -31,23 +29,13 @@ function Firework() {
                 this.particles.splice(i, 1)
             }
         }
-        // hier?!
-        this.target = random(letterPoints)
     }
 
     this.explode = function () {
-        for(let v of letterPoints){
-            let px = this.firework.pos.x + v.x
-            let py = this.firework.pos.y + v.y
-            let p = new Particle(px, py, this.hu, false)
-            p.vel = v.copy().mult(0.05)
+        for (var i = 0; i < 100; i++) {
+            var p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false)
             this.particles.push(p)
         }
-
-        // for (var i = 0; i < 100; i++) {
-        //     var p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false)
-        //     this.particles.push(p)
-        // }
     }
 
     this.show = function () {
