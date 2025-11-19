@@ -1,10 +1,15 @@
-class Mover {
+class Particel {
     constructor(x, y){
         this.pos = createVector(x, y)
         this.vel = p5.Vector.random2D()
         this.vel.mult(random(3))
         this.acc = createVector(0, 0)
-        this.r = 16
+        this.r = 4
+        this.lifetime = 255
+    }
+
+    finished(){
+        return (this.lifetime < 0)
     }
 
     applyForce(force) {
@@ -29,12 +34,15 @@ class Mover {
         this.vel.add(this.acc)
         this.pos.add(this.vel)
         this.acc.set(0, 0)
+
+        this.lifetime -= 5
     }
 
     show() {
-        stroke(255)
+        stroke(255, this.lifetime)
         strokeWeight(2)
-        fill(255, 100)
+        fill(255, this.lifetime)
+
         ellipse(this.pos.x, this.pos.y, this.r * 2);
     }
 }
