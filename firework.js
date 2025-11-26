@@ -4,8 +4,9 @@ function Firework(){
     this.exploded = false
     this.particles = []
 
-    this.word = "BOO"
-    this.fontSize = 64
+    this.words = ["BOO", "SPOOKY"]
+    this.fontSize = 120
+    this.wordAge = 0
 
     this.done = function(){
         return this.exploded && this.particles.length === 0
@@ -18,10 +19,21 @@ function Firework(){
             if(this.firework.vel.y >= 0){
                 this.exploded = true
 
-                prepareWordPoints(this.word, this.firework.pos.x, this.firework.pos.y, this.fontSize);
+                let word = random(this.words)
+                console.log("WORD:", word, typeof word);
+
+                prepareWordPoints(word, this.firework.pos.x, this.firework.pos.y, this.fontSize);
 
                 this.explode()
             }
+        }
+
+        if(this.exploded){
+            this.wordAge++
+        }
+
+        if(this.exploded && this.wordAge === 60){
+            this.releaseParticles()
         }
 
         for(let i = this.particles.length-1; i >= 0; i--){
@@ -29,6 +41,21 @@ function Firework(){
             this.particles[i].update()
             if(this.particles[i].done()){
                 this.particles.splice(i,1)
+            }
+        }
+    }
+
+    this.releaseParticles = function() {
+        for(let p of this.particles){
+            p.target = null
+            p.vel = createVector(random(-1, 1), random(2, 5))
+            p.lifespan = 255
+
+            p.growing = true
+            
+            for(let i = 0; i < 3; i++){
+                let g = new GlitterParticle(p.pos.x, p.pos.y, p.hu)
+                glitters.push(g)
             }
         }
     }

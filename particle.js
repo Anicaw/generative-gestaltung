@@ -1,6 +1,7 @@
 function Particle(x, y, hu, firework, target = null){
     this.pos = createVector(x, y);
     this.firework = firework;
+    this.size = 3
     this.hu = hu;
     this.lifespan = 255;
     this.target = target;
@@ -43,8 +44,15 @@ function Particle(x, y, hu, firework, target = null){
         }
 
         if(!this.firework){
-            this.vel.mult(0.9);
             this.lifespan -= 4;
+            this.vel.mult(0.9);
+            if(!this.target){
+
+            }
+        }
+
+        if(this.growing){
+            this.size = map(this.lifespan, 255, 0, this.size, this.size*0.9)
         }
 
         this.vel.add(this.acc);
@@ -59,10 +67,10 @@ function Particle(x, y, hu, firework, target = null){
     this.show = function(){
         colorMode(HSB);
         if(this.firework){
-            strokeWeight(4)
+            strokeWeight(this.size + 2)
             stroke(this.hu, 255, 255, this.lifespan)
         } else {
-            strokeWeight(2)
+            strokeWeight(this.size)
             stroke(this.hu, 255, 255, this.lifespan);
         }
         point(this.pos.x, this.pos.y)
