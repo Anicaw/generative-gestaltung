@@ -2,7 +2,7 @@ var fireworks = []
 var gravity
 var font
 var wordPoints = []
-var words = []
+// var words = []
 var glitters = []
 
 function preload(){
@@ -50,11 +50,11 @@ function draw() {
         }
     }
 
-//     for (let i = glitters.length - 1; i >= 0; i--){
-//         glitters[i].update()
-//         glitters[i].show()
-//         if (glitters[i].done()){
-//             glitters.splice(i, 1)
-//         }
-//     }
+    for (let i = glitters.length - 1; i >= 0; i--){
+        glitters[i].update()
+        glitters[i].show()
+        if (glitters[i].done()){
+            glitters.splice(i, 1)
+        }
+    }
 }
