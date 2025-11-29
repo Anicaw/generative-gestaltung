@@ -7,6 +7,7 @@ function GlitterParticle(x, y, hu){
     this.acc = createVector(0, 0.05)
 }
 
+// Funken sind nur kurz zu sehen
 GlitterParticle.prototype.update = function(){
     this.vel.add(this.acc)
     this.pos.add(this.vel)
@@ -16,8 +17,7 @@ GlitterParticle.prototype.update = function(){
 GlitterParticle.prototype.show = function(){
     colorMode(HSB)
     strokeWeight(this.size)
-    let alpha = this.lifespan * random(0.8, 1.2); 
-    stroke(this.hu, 255, 255, alpha)
+    stroke(this.hu, 255, 255)
     point(this.pos.x, this.pos.y)
 }
 

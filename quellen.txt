@@ -35,3 +35,16 @@
 
  Sonstiges
  Geist ausgeschnitten mit Photopea
+
+
+
+ Aufgabe 4:
+ Sound
+ Explosion (Wort wird gebildet): https://pixabay.com/de/sound-effects/explosion-3-386885/
+ Feuerwerk Start: https://pixabay.com/de/sound-effects/fireworks-107116/
+
+ Bild
+ Skyline: https://pixabay.com/de/illustrations/blackout-stromausfall-nacht-dunkel-7492809/
+
+ Code
+ drawBgImageOnce(): ChatGPT
