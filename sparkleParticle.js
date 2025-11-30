@@ -1,4 +1,4 @@
-function GlitterParticle(x, y, hu){
+function SparkleParticle(x, y, hu){
     this.pos = createVector(x, y)
     this.hu = hu
     this.lifespan = 60
@@ -8,19 +8,19 @@ function GlitterParticle(x, y, hu){
 }
 
 // Funken sind nur kurz zu sehen
-GlitterParticle.prototype.update = function(){
+SparkleParticle.prototype.update = function(){
     this.vel.add(this.acc)
     this.pos.add(this.vel)
     this.lifespan -= 2
 }
 
-GlitterParticle.prototype.show = function(){
+SparkleParticle.prototype.show = function(){
     colorMode(HSB)
     strokeWeight(this.size)
     stroke(this.hu, 255, 255)
     point(this.pos.x, this.pos.y)
 }
 
-GlitterParticle.prototype.done = function(){
+SparkleParticle.prototype.done = function(){
     return this.lifespan <= 0
 }

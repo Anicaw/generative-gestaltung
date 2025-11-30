@@ -13,6 +13,8 @@ function Firework() {
 
     this.words = ["BOO", "SPOOKY", "HAUNTED"]
     this.fontSize = random(50, 200)
+
+    // um Wort bestimmte Zeit sichtbar zu halten
     this.wordAge = 0
     this.wordHoldDuration = 90
 
@@ -41,20 +43,18 @@ function Firework() {
             }
         }
 
-        // um Wort eine bestimmte Zeit anzuzeigen und Glitzerpartikel für dieses zu erzeugen
+        // um Wort eine bestimmte Zeit anzuzeigen und Funken für dieses zu erzeugen
         if (this.exploded) {
             this.wordAge++
-            if (this.wordAge <= this.wordHoldDuration) {
+            if (this.wordAge < this.wordHoldDuration) {
                 for (let p of this.particles) {
-                    if (!p.firework) {
-                        // Funkelpartikel auf zufälliges Partikel vom Wort
-                        if (random() < 0.03) {
-                            glitters.push(new GlitterParticle(
-                                p.pos.x + random(-2, 2),
-                                p.pos.y + random(-2, 2),
-                                this.hu
-                            ));
-                        }
+                    // Funkelpartikel mit geringer Wahrscheinlichkeit auf Wortpartikel
+                    if (random() < 0.03) {
+                        sparkles.push(new SparkleParticle(
+                            p.pos.x + random(-2, 2),
+                            p.pos.y + random(-2, 2),
+                            p.hu
+                        ));
                     }
                 }
             }
@@ -86,27 +86,26 @@ function Firework() {
 
 
     this.explode = function () {
+        var hueStart = random(255)
+        var hueEnd = random(255)
         if (wordPoints.length > 0) {
             // Partikel von Explosion wird Punkt von Wort zugewiesen
             for (let i = 0; i < wordPoints.length; i++) {
                 let target = wordPoints[i]
-                let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false, target);
+                // um einen zufälligen Farbverlauf zu erzeugen
+                let factor = i / (wordPoints.length - 1)
+                let hue = lerp(hueStart, hueEnd, factor)
+                let p = new Particle(this.firework.pos.x, this.firework.pos.y, hue, false, target);
 
                 // damit Wort langsam "entsteht" und nicht plötzlich aufploppt
                 p.arrivalDelay = floor(map(i, 0, wordPoints.length - 1, 0, 40))
                 p.arrivalDelay += floor(random(-6, 6))
 
-                // p.spawnFrame = frameCount
+                p.spawnFrame = frameCount
                 p.vel = p5.Vector.random2D().mult(random(2, 4));
                 this.particles.push(p)
             }
-        } 
-        // else {
-        //     for (let i = 0; i < 100; i++) {
-        //         let p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
-        //         this.particles.push(p)
-        //     }
-        // }
+        }
     }
 
     this.show = function () {

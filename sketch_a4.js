@@ -4,32 +4,33 @@ var fireworks = []
 var gravity
 var font
 var wordPoints = []
-var glitters = []
+var sparkles = []
 
 var fireworkSound
 var fireworkExplode
 
 var nightImg
 
-function preload(){
+function preload() {
     font = loadFont("./assets/Shadows/ShadowsIntoLightTwo-Regular.ttf");
     nightImg = loadImage('./images/night.png')
     fireworkSound = loadSound('./sounds/firework-start.mp3')
     fireworkExplode = loadSound('./sounds/explosion.mp3')
 }
 
-function setup(){
+function setup() {
     createCanvas(windowWidth, windowHeight);
     colorMode(HSB);
     gravity = createVector(0, 0.2)
 
-        // Hintergrundcanvas erstellen
-        bg = createGraphics(width, height);
-        bg.colorMode(RGB);
-        drawBgImageOnce(bg);
+    // Hintergrundcanvas erstellen
+    bg = createGraphics(width, height);
+    bg.colorMode(RGB);
+    drawBgImageOnce(bg);
 }
 
-function prepareWordPoints(word, explosionX, explosionY, fontSize){
+// Funktion für das "Feuerwerk-Wort"
+function prepareWordPoints(word, explosionX, explosionY, fontSize) {
     let points = font.textToPoints(word, 0, 0, fontSize, {
         sampleFactor: 0.2,
         simplifyThreshold: 0
@@ -38,11 +39,25 @@ function prepareWordPoints(word, explosionX, explosionY, fontSize){
     let bounds = font.textBounds(word, 0, 0, fontSize);
     wordPoints = points.map(pt => {
         return createVector(
-            pt.x - bounds.w/2 + explosionX,
-            pt.y - bounds.h/5 + explosionY
+            pt.x - bounds.w / 2 + explosionX,
+            pt.y - bounds.h / 5 + explosionY
         );
     });
 }
+
+function startScreen() {
+    background(0)
+    fill('white')
+    textFont("Eater")
+    textSize(30)
+    text('Klicke, um das Feuerwerk starten zu lassen!', windowWidth / 3.5, 200);
+}
+
+let started = false
+function mousePressed() {
+    started = true
+}
+
 
 // damit Bilder nicht verzerrt dargestellt werden
 // START Code von ChatGPT
@@ -70,38 +85,38 @@ function drawBgImageOnce(g) {
 }
 // ENDE Code von ChatGPT
 
+// Funktion, um Feuerwerke und Funken upzudaten und anzuzeigen
+function handleParticle(particle) {
+    for (let i = particle.length - 1; i >= 0; i--) {
+        particle[i].update();
+        particle[i].show();
+        if (particle[i].done()) {
+            particle.splice(i, 1);
+        }
+    }
+}
+
 function draw() {
-    colorMode(RGB)
-    image(bg, 0, 0)
-    background(0, 20);
+    // if (!started) {
+    //     startScreen()
+    // } else {
+        colorMode(RGB)
+        image(bg, 0, 0)
+        background(0, 20);
 
-    // Fireworks erzeugen
-    if(random(1) < 0.03){
-        fireworks.push(new Firework());
-    }
-
-    // Fireworks updaten und anzeigen
-    for(let i = fireworks.length-1; i >= 0; i--){
-        fireworks[i].update();
-        fireworks[i].show();
-        if(fireworks[i].done()){
-            fireworks.splice(i, 1);
+        // Fireworks erzeugen
+        if (random(1) < 0.03) {
+            fireworks.push(new Firework());
         }
-    }
 
-    for (let i = glitters.length - 1; i >= 0; i--){
-        glitters[i].update()
-        glitters[i].show()
-        if (glitters[i].done()){
-            glitters.splice(i, 1)
-        }
-    }
+        handleParticle(fireworks)
+        handleParticle(sparkles)
 
-    // FPS messen und anzeigen
-fr = floor(getFrameRate());
-fill(255);
-noStroke();
-textSize(20);
-text("FPS: " + fr, 20, 40);
-
+        // FPS messen und anzeigen
+        fr = floor(getFrameRate());
+        fill(255);
+        noStroke();
+        textSize(20);
+        text("FPS: " + fr, 20, 40);
+    // }
 }

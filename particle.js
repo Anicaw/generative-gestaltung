@@ -7,12 +7,10 @@ function Particle(x, y, hu, firework, target = null) {
     this.target = target;
 
     this.spawnFrame = frameCount || 0
-    this.arrivalDelay = 0
     this.arrived = false
     this.holdTimer = 0
     this.holdDuration = 60
     this.ease = 0.012
-    // this.pulseOffset = 1
 
     if (firework) {
         this.vel = createVector(0, random(-19, -12));
@@ -29,33 +27,34 @@ function Particle(x, y, hu, firework, target = null) {
     this.update = function () {
         // Bewegung auf Target
         if (this.target && !this.arrived) {
-            let tNow = frameCount - this.spawnFrame
+            // damit sich das Wort langsam aufbaut
+               let tNow = frameCount - this.spawnFrame
             if (tNow < this.arrivalDelay) {
                 let wobble = p5.Vector.random2D().mult(0.5)
                 this.vel.add(wobble.mult(5))
                 this.vel.mult(0.85)
             } else {
                 let toTarget = p5.Vector.sub(this.target, this.pos);
-                let dist = toTarget.mag()
+                // let dist = toTarget.mag()
                 let pull = toTarget.copy().mult(this.ease)
                 // damit sich Partikel auf ihrer Position bewegen
-                let wobble = p5.Vector.random2D().mult(0.3)
+                let wobble = p5.Vector.random2D().mult(0.3) 
                 this.vel.add(p5.Vector.mult(wobble, 0.6))
                 this.vel.add(pull)
                 this.vel.mult(0.85)
 
-                if (dist < 1.5) {
-                    this.arrived = true
-                    this.pos = this.target.copy()
-                    this.vel.mult(0)
-                    this.holdTimer = 0
-                }
+                //
+                // if (dist < 1.5) {
+                //     this.arrived = true
+                //     this.pos = this.target.copy()
+                //     this.vel.mult(0)
+                //     this.holdTimer = 0
+                // }
             }
         }
 
         if (this.arrived) {
             this.holdTimer++
-            // this.size = 3 + sin(frameCount * 0.8 + this.pulseOffset) * 2
             if (this.holdTimer > this.holdDuration) {
                 this.target = null
                 this.vel = p5.Vector.random2D().mult(random(0.5, 2))
@@ -81,10 +80,10 @@ function Particle(x, y, hu, firework, target = null) {
         colorMode(HSB)
         if (this.firework) {
             strokeWeight(this.size + 5)
-            stroke(this.hu, 255, 255, this.lifespan)
+            stroke(this.hu, 255, 255)
         } else {
             strokeWeight(this.size)
-            stroke(this.hu, 255, 255, this.lifespan);
+            stroke(this.hu, 255, 255);
         }
         point(this.pos.x, this.pos.y)
     }
