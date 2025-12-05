@@ -97,9 +97,9 @@ function handleParticle(particle) {
 }
 
 function draw() {
-    // if (!started) {
-    //     startScreen()
-    // } else {
+    if (!started) {
+        startScreen()
+    } else {
         colorMode(RGB)
         image(bg, 0, 0)
         background(0, 20);
@@ -118,5 +118,5 @@ function draw() {
         noStroke();
         textSize(20);
         text("FPS: " + fr, 20, 40);
-    // }
+    }
 }

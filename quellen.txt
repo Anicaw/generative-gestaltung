@@ -40,11 +40,16 @@
 
  Aufgabe 4:
  Sound
- Explosion (Wort wird gebildet): https://pixabay.com/de/sound-effects/explosion-3-386885/
  Feuerwerk Start: https://pixabay.com/de/sound-effects/fireworks-107116/
+ Explosion (Wort wird gebildet): https://pixabay.com/de/sound-effects/explosion-3-386885/
 
  Bild
  Skyline: https://pixabay.com/de/illustrations/blackout-stromausfall-nacht-dunkel-7492809/
 
  Code
- drawBgImageOnce(): ChatGPT
+ Grundgrüst mit: Daniel Shiffman, "Coding Challenge #27: Fireworks!" auf YouTube https://www.youtube.com/watch?v=CKeyIbT3vXI
+ drawBgImageOnce() in sketch: ChatGPT
+
+
+ Aufgabe 5:
+ Sprites: https://www.deviantart.com/mr-skurleton/art/Betta-fish-rpg-maker-sprites-1001516514
