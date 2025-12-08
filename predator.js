@@ -2,7 +2,7 @@ class Predator extends Boid {
     constructor(pos) {
         super()
         this.position = pos ? pos.copy() : createVector(random(width), random(height))
-        this.maxSpeed = 5
+        this.maxSpeed = 4.2
         this.maxForce = 0.6
         this.isPredator = true
     }

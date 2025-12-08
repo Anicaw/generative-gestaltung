@@ -2,17 +2,25 @@ class Boid {
     constructor() {
         this.position = createVector(random(width), random(height))
         this.velocity = p5.Vector.random2D()
-        this.velocity.setMag(random(2, 4))
+        this.velocity.setMag(random(1.5, 4))
         this.acceleration = createVector()
         this.maxForce = 1
-        this.maxSpeed = 4
+        this.maxSpeed = random(2, 4)
+        this.orientation = 0
 
         this.frame = 0;            // aktueller Frame
-        this.frameDelay = 10;       // wie viele draw()-Frames zwischen Bildwechsel
+        this.frameDelay = 50;       // wie viele draw()-Frames zwischen Bildwechsel
         this.frameCounter = 0;
     }
 
     animateSprite() {
+        let speed = this.velocity.mag()
+        let minDelay = 4
+        let maxDelay =15
+
+        this.frameDelay = map(speed, 0, this.maxSpeed, maxDelay, minDelay)
+        this.frameDelay = constrain(this.frameDelay, minDelay, maxDelay)
+
         this.frameCounter++;
     
         if (this.frameCounter >= this.frameDelay) {
@@ -21,18 +29,44 @@ class Boid {
         }
     }
 
+    // edges() {
+    //     if (this.position.x > width) {
+    //         this.position.x = 0
+    //     } else if (this.position.x < 0) {
+    //         this.position.x = width
+    //     }
+    //     if (this.position.y > height) {
+    //         this.position.y = 0
+    //     } else if (this.position.y < 0) {
+    //         this.position.y = height
+    //     }
+    // }
+
     edges() {
-        if (this.position.x > width) {
-            this.position.x = 0
-        } else if (this.position.x < 0) {
-            this.position.x = width
+        let margin = 20;       // wie nah der Fisch an den Rand darf
+        let turnStrength = 0.5;
+    
+        // Linker Rand
+        if (this.position.x < margin) {
+            this.acceleration.x += turnStrength;
         }
-        if (this.position.y > height) {
-            this.position.y = 0
-        } else if (this.position.y < 0) {
-            this.position.y = height
+    
+        // Rechter Rand
+        if (this.position.x > width - margin) {
+            this.acceleration.x -= turnStrength;
+        }
+    
+        // Oberer Rand
+        if (this.position.y < margin) {
+            this.acceleration.y += turnStrength;
+        }
+    
+        // Unterer Rand
+        if (this.position.y > height - margin) {
+            this.acceleration.y -= turnStrength;
         }
     }
+    
 
     align(boids) {
         let perceptionRadius = 50
@@ -138,20 +172,19 @@ class Boid {
         this.acceleration.mult(0)
     }
 
-    show() {
-        // strokeWeight(8)
-        // stroke(255)
-        // point(this.position.x, this.position.y)
+    smoothRotate(){
+        let targetAngle = this.velocity.heading() + HALF_PI
+        this.orientation = lerp(this.orientation, targetAngle, 0.08)
+    }
 
-        this.animateSprite();   // Frame wechseln
+    show() {
+        this.animateSprite()
 
         push();
-        translate(this.position.x, this.position.y);
-    
-        // heading = Richtung der Velocity
-        let angle = this.velocity.heading() + HALF_PI
-        // angle +=
-        rotate(angle)
+        translate(this.position.x, this.position.y)
+
+        this.smoothRotate()
+        rotate(this.orientation)
     
         imageMode(CENTER);
     
@@ -160,8 +193,8 @@ class Boid {
         let frameHeight = fishSprite.height;
     
         // Ausschnitt aus dem Spritesheet
-        let sx = this.frame * frameWidth;  // x-Position des Frames
-        let sy = 0;
+        let sx = this.frame * frameWidth  // x-Position des Frames
+        let sy = 0
     
         // Auf Canvas gewünschte Größe
         let displayWidth = 30;
