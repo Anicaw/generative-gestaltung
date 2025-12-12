@@ -1,6 +1,8 @@
 const flock = []
 
 const predators = []
+let predatorRespawnTimer = 0
+let respawnDelay = 120
 
 particleBursts = []
 
@@ -10,14 +12,16 @@ let fishSprite
 
 function preload(){
     fishSprite = loadImage("./images/fishBlue.png")
+    bgStones = loadImage("./images/stones.jpg")
 }
 
 function setup(){
     createCanvas(640, 360)
-    // colorMode(HSB, 360, 100, 100, 255)
-    alignSlider = createSlider(0, 5, 1, 0.1)
-    cohesionSlider = createSlider(0, 5, 1, 0.1)
-    separationSlider = createSlider(0, 5, 1, 0.1)
+
+    bg = createGraphics(width, height);
+    bg.colorMode(RGB);
+    drawBgImageOnce(bg)
+
     for(let i = 0; i < 20; i++){
         flock.push(new Boid())
     }
@@ -46,11 +50,48 @@ function spawnNewBoids(amount){
     }
 }
 
+function drawWaves(){
+    noFill()
+    stroke(255, 255, 255, 5);
+    for(let y = 0; y < height; y += 12){
+        let offset = sin(frameCount * 0.015 + y * 0.2) * 9
+        let noiseOffset = noise(frameCount * 0.01, y * 0.05) * 8
+        let waveY = y + offset + noiseOffset
+        line(0, waveY, width, waveY)
+    }
+}
+
+// damit Bilder nicht verzerrt dargestellt werden
+// START Code von ChatGPT
+function drawBgImageOnce(g) {
+    let imgAspect = bgStones.width / bgStones.height;
+    let canvasAspect = width / height;
+    let drawWidth, drawHeight;
+
+    if (canvasAspect > imgAspect) {
+        drawWidth = width;
+        drawHeight = width / imgAspect;
+    } else {
+        drawHeight = height;
+        drawWidth = height * imgAspect;
+    }
+
+    let x = 0;
+    let y = height - drawHeight;
+
+    g.push();
+    g.tint(90, 50);
+    g.image(bgStones, x, y, drawWidth, drawHeight);
+    g.noTint();
+    g.pop();
+}
+// ENDE Code von ChatGPT
+
 function draw(){
-    background(51)
+    image(bg, 0, 0)
 
     for (let boid of flock){
-        boid.edges()
+        boid.edges(0.8, 1)
         boid.flock(flock)
         boid.update()
         boid.show()
@@ -60,13 +101,34 @@ function draw(){
         spawnNewBoids(10)
     }
 
-    for (let p of predators){
-        p.edges()
+    // for (let p of predators){
+    //     p.flock(flock)
+    //     p.update()
+    //     p.eat(flock)
+    //     p.show()
+    // }
+    for (let i = predators.length - 1; i >= 0; i--) {
+        let p = predators[i];
         p.flock(flock)
-        p.update()
-        p.eat(flock)
-        p.show()
+        p.update();
+        p.eat(flock);
+        p.show();
+    
+        // Prüfen, ob er „explodiert“ ist
+        if (p.size >= p.maxSize) {
+            predatorRespawnTimer = respawnDelay; // Timer starten
+            predators.splice(i, 1);               // Raubfisch entfernen
+        }
     }
+    
+    // Spawn, wenn Timer abgelaufen ist
+    if (predatorRespawnTimer > 0) {
+        predatorRespawnTimer--;
+        if (predatorRespawnTimer === 0) {
+            predators.push(new Predator(createVector(random(width), random(height))));
+        }
+    }
+    
 
     for(let burst of particleBursts){
         burst.update()
@@ -78,4 +140,6 @@ function draw(){
             particleBursts.splice(i, 1)
         }
     }
+
+    // drawWaves()
 }

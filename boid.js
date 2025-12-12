@@ -5,7 +5,7 @@ class Boid {
         this.velocity.setMag(random(1.5, 4))
         this.acceleration = createVector()
         this.maxForce = 1
-        this.maxSpeed = random(2, 4)
+        this.maxSpeed = random(2, 3)
         this.orientation = 0
 
         this.frame = 0;            // aktueller Frame
@@ -42,26 +42,21 @@ class Boid {
     //     }
     // }
 
-    edges() {
-        let margin = 20;       // wie nah der Fisch an den Rand darf
-        let turnStrength = 0.5;
-    
-        // Linker Rand
+    edges(turnStrength) {
+        let margin = 20
+        // links
         if (this.position.x < margin) {
             this.acceleration.x += turnStrength;
         }
-    
-        // Rechter Rand
+        // rechts
         if (this.position.x > width - margin) {
             this.acceleration.x -= turnStrength;
         }
-    
-        // Oberer Rand
+        // oben
         if (this.position.y < margin) {
             this.acceleration.y += turnStrength;
         }
-    
-        // Unterer Rand
+        // unten
         if (this.position.y > height - margin) {
             this.acceleration.y -= turnStrength;
         }
@@ -69,7 +64,7 @@ class Boid {
     
 
     align(boids) {
-        let perceptionRadius = 50
+        let perceptionRadius = 100
         let steering = createVector()
         let total = 0
         for (let other of boids) {
@@ -172,42 +167,51 @@ class Boid {
         this.acceleration.mult(0)
     }
 
+    // ChatGPT Start
     smoothRotate(){
-        let targetAngle = this.velocity.heading() + HALF_PI
-        this.orientation = lerp(this.orientation, targetAngle, 0.08)
+        let targetAngle = this.velocity.heading() + HALF_PI;
+        let diff = targetAngle - this.orientation;
+        diff = atan2(sin(diff), cos(diff)); // kleinster Winkel
+        this.orientation += diff * 0.08;     // weich über Frames
     }
+    // ChatGPT Ende
 
     show() {
-        this.animateSprite()
-
-        push();
-        translate(this.position.x, this.position.y)
-
-        this.smoothRotate()
-        rotate(this.orientation)
+        this.animateSprite();
+        this.smoothRotate();
     
-        imageMode(CENTER);
-    
-        // Größe eines einzelnen Frames im Original
+        // Größe eines einzelnen Frames
         let frameWidth = fishSprite.width / totalFrames;
         let frameHeight = fishSprite.height;
     
-        // Ausschnitt aus dem Spritesheet
-        let sx = this.frame * frameWidth  // x-Position des Frames
-        let sy = 0
-    
-        // Auf Canvas gewünschte Größe
+        // gewünschte Größe am Canvas
         let displayWidth = 30;
         let displayHeight = displayWidth * (frameHeight / frameWidth);
     
+        push();
+        translate(this.position.x, this.position.y);
+        rotate(this.orientation);
+    
+        // --- SCHATTEN ---
+        noStroke();
+        fill(0, 40);
+        ellipse(3, 3, displayWidth * 0.9, displayHeight * 0.4);
+    
+        // --- SPRITE ---
+        imageMode(CENTER);
+    
+        let sx = this.frame * frameWidth;
+        let sy = 0;
+    
         image(
             fishSprite,
-            0, 0,                          // wohin
-            displayWidth, displayHeight,   // Größe auf Canvas
-            sx, sy,                         // wo im Sprite
-            frameWidth, frameHeight         // Größe des Frames
+            0, 0,
+            displayWidth, displayHeight,
+            sx, sy,
+            frameWidth, frameHeight
         );
     
         pop();
     }
+    
 }

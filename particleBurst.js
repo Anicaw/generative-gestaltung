@@ -1,7 +1,7 @@
 class ParticleBurst {
     constructor(pos){
         this.particles = []
-        for (let i = 0; i < 25; i++){
+        for (let i = 0; i < 30; i++){
             this.particles.push(new Particle(pos))
         }
     }
