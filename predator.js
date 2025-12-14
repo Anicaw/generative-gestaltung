@@ -2,13 +2,20 @@ class Predator extends Boid {
     constructor(pos) {
         super()
         this.position = pos ? pos.copy() : createVector(random(width), random(height))
-        this.maxSpeed = 3.5
+        this.maxSpeed = 4
         this.maxForce = 0.6
         this.isPredator = true
 
         this.size = 20
         this.maxSize = 100
         this.growAmount = 6
+
+        this.hasBurst = false
+
+        this.frame = 0
+        this.frameDelay = 6
+        this.frameCounter = 0
+        this.orientation = 0
     }
 
     flock(boids) {
@@ -74,6 +81,8 @@ class Predator extends Boid {
         }
         let d = p5.Vector.dist(this.position, prey.position)
         if(d < this.size * 0.5){
+            waterSound.play(0, 1, 1, 0, 0.9)
+            eating.play(0, 1, 1, 0, 0.7)
             particleBursts.push(new ParticleBurst(prey.position.copy()))
             this.size += this.growAmount
             let index = flock.indexOf(prey)
@@ -84,11 +93,16 @@ class Predator extends Boid {
     }
 
     burst(){
-        particleBursts.push(new ParticleBurst(this.position.copy()))
-        this.size = 20
-        this.position = createVector(random(width), random(height))
-        this.velocity = p5.Vector.random2D()
+        if (this.hasBurst) return
+        this.hasBurst = true
+        
+        let pink = color(255, 105, 180)
+        particleBursts.push(new ParticleBurst(this.position.copy(), true, pink))
+    
+        burstPredator.stop()
+        burstPredator.play(0, random(0.9, 1.1), 1, 0, 0.9)
     }
+    
 
     update(){
         this.edges()
@@ -102,11 +116,38 @@ class Predator extends Boid {
     }
 
     show(){
+        this.animateSprite()
+        this.smoothRotate()
+    
+        let frameWidth = predatorSprite.width / totalFrames
+        let frameHeight = predatorSprite.height
+    
+        // größer als normale Fische
+        let displayWidth = map(this.size, 20, this.maxSize, 20, 80)
+        let displayHeight = displayWidth * (frameHeight / frameWidth)
+    
         push()
         translate(this.position.x, this.position.y)
+        rotate(this.orientation)
+    
+        // Schatten
         noStroke()
-        fill(255, 0, 0)
-        circle(0, 0, this.size)
+        fill(0, 50)
+        ellipse(5, 5, displayWidth * 0.9, displayHeight * 0.4)
+    
+        imageMode(CENTER)
+    
+        let sx = this.frame * frameWidth
+    
+        image(
+            predatorSprite,
+            0, 0,
+            displayWidth, displayHeight,
+            sx, 0,
+            frameWidth, frameHeight
+        )
+    
         pop()
     }
+    
 }

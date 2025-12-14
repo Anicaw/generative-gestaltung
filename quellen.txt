@@ -52,6 +52,13 @@
 
 
  Aufgabe 5:
- Sprites: https://www.deviantart.com/mr-skurleton/art/Betta-fish-rpg-maker-sprites-1001516514
+ Sound
+ Wasserplatsch: https://pixabay.com/de/sound-effects/water-splashing-443135/
+ Essen/Biss: https://pixabay.com/de/sound-effects/eating-chips-81092/
+ Platzen: https://pixabay.com/de/sound-effects/splat2ogg-14668/
+
+ Sprites
+ https://www.deviantart.com/mr-skurleton/art/Betta-fish-rpg-maker-sprites-1001516514
+ 
  Bild
  Steine Hintergrund: https://pixabay.com/de/photos/kieselsteine-steine-textur-muster-4499676/

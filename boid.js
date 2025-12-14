@@ -4,43 +4,43 @@ class Boid {
         this.velocity = p5.Vector.random2D()
         this.velocity.setMag(random(1.5, 4))
         this.acceleration = createVector()
-        this.maxForce = 1
-        this.maxSpeed = random(2, 3)
+        this.maxForce = 0.5
+        this.maxSpeed = random(2, 4)
         this.orientation = 0
 
-        this.frame = 0;            // aktueller Frame
-        this.frameDelay = 50;       // wie viele draw()-Frames zwischen Bildwechsel
+        // für Animation des Sprites
+        this.frame = 0;  
+        this.frameDir = 1
+        this.frameDelay = 50
         this.frameCounter = 0;
     }
 
     animateSprite() {
-        let speed = this.velocity.mag()
-        let minDelay = 4
-        let maxDelay =15
-
-        this.frameDelay = map(speed, 0, this.maxSpeed, maxDelay, minDelay)
-        this.frameDelay = constrain(this.frameDelay, minDelay, maxDelay)
-
+        let speed = this.velocity.mag();
+        let minDelay = 4;
+        let maxDelay = 15;
+    
+        this.frameDelay = map(speed, 0, this.maxSpeed, maxDelay, minDelay);
+        this.frameDelay = constrain(this.frameDelay, minDelay, maxDelay);
+    
         this.frameCounter++;
     
         if (this.frameCounter >= this.frameDelay) {
             this.frameCounter = 0;
-            this.frame = (this.frame + 1) % totalFrames;
+    
+            this.frame += this.frameDir;
+    
+            // --- Richtungswechsel an den Enden ---
+            if (this.frame >= totalFrames - 1) {
+                this.frame = totalFrames - 1;
+                this.frameDir = -1;
+            } 
+            else if (this.frame <= 0) {
+                this.frame = 0;
+                this.frameDir = 1;
+            }
         }
     }
-
-    // edges() {
-    //     if (this.position.x > width) {
-    //         this.position.x = 0
-    //     } else if (this.position.x < 0) {
-    //         this.position.x = width
-    //     }
-    //     if (this.position.y > height) {
-    //         this.position.y = 0
-    //     } else if (this.position.y < 0) {
-    //         this.position.y = height
-    //     }
-    // }
 
     edges(turnStrength) {
         let margin = 20
@@ -142,7 +142,7 @@ class Boid {
 
     fleePredators(predators){
         let flee = createVector()
-        let fleeRadius = 120
+        let fleeRadius = 180
         for(let p of predators){
             let d = p5.Vector.dist(this.position, p.position)
             if(d < fleeRadius){

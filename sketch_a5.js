@@ -1,31 +1,43 @@
 const flock = []
 
 const predators = []
+// Variable/ Konstante für das wiedererschienen des Raubfisches
 let predatorRespawnTimer = 0
-let respawnDelay = 120
+const respawnDelay = 120
 
 particleBursts = []
 
+// für Animation der Fische
 const totalFrames = 7 
-
 let fishSprite
+let predatorSprite
+
+let waterSound
 
 function preload(){
-    fishSprite = loadImage("./images/fishBlue.png")
+    fishSprite = loadImage("./images/fish-blue2.png")
+    predatorSprite = loadImage("./images/fish-pink2.png")
     bgStones = loadImage("./images/stones.jpg")
+    waterSound = loadSound("./sounds/water-splashing.mp3")
+    eating = loadSound("./sounds/eating.mp3")
+    burstPredator = loadSound("./sounds/burst.mp3")
 }
 
 function setup(){
-    createCanvas(640, 360)
-
-    bg = createGraphics(width, height);
-    bg.colorMode(RGB);
+    createCanvas(windowWidth, windowHeight)
+    bg = createGraphics(width, height)
     drawBgImageOnce(bg)
 
-    for(let i = 0; i < 20; i++){
+    // x Fische werden am Anfang erstellt
+    for(let i = 0; i < 50; i++){
         flock.push(new Boid())
     }
-    predators.push(new Predator(createVector(width/2, height/2)))
+    // Raubfisch wird in Bildschirmmitte erstellt 
+    // auskommentierter Code, falls mehr als 1 Raubfisch erstellt werden soll
+    for(let j = 0; j < 1; j++){
+        // predators.push(new Predator(createVector(random(width), random(height))))
+        predators.push(new Predator(createVector(width/2, height/2)))
+    }
 }
 
 // damit neue Fische ins Canvas kommen.
@@ -47,17 +59,6 @@ function spawnNewBoids(amount){
             break
         }
         flock.push(b)
-    }
-}
-
-function drawWaves(){
-    noFill()
-    stroke(255, 255, 255, 5);
-    for(let y = 0; y < height; y += 12){
-        let offset = sin(frameCount * 0.015 + y * 0.2) * 9
-        let noiseOffset = noise(frameCount * 0.01, y * 0.05) * 8
-        let waveY = y + offset + noiseOffset
-        line(0, waveY, width, waveY)
     }
 }
 
@@ -91,37 +92,33 @@ function draw(){
     image(bg, 0, 0)
 
     for (let boid of flock){
-        boid.edges(0.8, 1)
+        boid.edges(0.8)
         boid.flock(flock)
         boid.update()
         boid.show()
     }
     
-    if(flock.length <= 7){
-        spawnNewBoids(10)
+    if(flock.length <= 20){
+        spawnNewBoids(20)
     }
 
-    // for (let p of predators){
-    //     p.flock(flock)
-    //     p.update()
-    //     p.eat(flock)
-    //     p.show()
-    // }
     for (let i = predators.length - 1; i >= 0; i--) {
-        let p = predators[i];
+        let p = predators[i]
+        p.edges(0.8)
         p.flock(flock)
-        p.update();
-        p.eat(flock);
-        p.show();
+        p.update()
+        p.eat(flock)
+        p.show()
     
-        // Prüfen, ob er „explodiert“ ist
-        if (p.size >= p.maxSize) {
-            predatorRespawnTimer = respawnDelay; // Timer starten
-            predators.splice(i, 1);               // Raubfisch entfernen
+        // Timer starten; Raubfisch entfernen
+        if (p.hasBurst) {
+            predatorRespawnTimer = respawnDelay
+            predators.splice(i, 1)
         }
     }
     
     // Spawn, wenn Timer abgelaufen ist
+    // Damit Raubfisch erst nach ein paar Sekunden kommt, wenn er geplatzt ist (an zufälliger Pos)
     if (predatorRespawnTimer > 0) {
         predatorRespawnTimer--;
         if (predatorRespawnTimer === 0) {
@@ -129,17 +126,15 @@ function draw(){
         }
     }
     
-
     for(let burst of particleBursts){
         burst.update()
         burst.show()
     }
 
+    // Löscht Partikel
     for(let i = particleBursts.length - 1; i >= 0; i--){
         if(particleBursts[i].isDone()){
             particleBursts.splice(i, 1)
         }
     }
-
-    // drawWaves()
 }
