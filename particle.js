@@ -2,6 +2,7 @@ class Particle {
     constructor(pos, sizeFactor = 1, col = color(137, 207, 240)){
         this.pos = pos.copy()
         let speed = random(1, 3)
+        // für "großen" Burst bei Raubfisch
         if(sizeFactor > 1){
             speed *= 2
         }

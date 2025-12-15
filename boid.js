@@ -5,61 +5,62 @@ class Boid {
         this.velocity.setMag(random(1.5, 4))
         this.acceleration = createVector()
         this.maxForce = 0.5
-        this.maxSpeed = random(2, 4)
+        this.maxSpeed = random(4, 6)
         this.orientation = 0
 
+        this.fishSize = 50
+
         // für Animation des Sprites
-        this.frame = 0;  
+        this.frame = 0
         this.frameDir = 1
         this.frameDelay = 50
-        this.frameCounter = 0;
+        this.frameCounter = 0
     }
 
+    // Flossenbewegung mit Sprite
+    // je schneller der Fisch, desto schneller die Bewegung
     animateSprite() {
         let speed = this.velocity.mag();
-        let minDelay = 4;
-        let maxDelay = 15;
+        let minDelay = 2
+        let maxDelay = 15
     
-        this.frameDelay = map(speed, 0, this.maxSpeed, maxDelay, minDelay);
-        this.frameDelay = constrain(this.frameDelay, minDelay, maxDelay);
+        this.frameDelay = map(speed, 0, this.maxSpeed, maxDelay, minDelay)
     
-        this.frameCounter++;
+        this.frameCounter++
     
         if (this.frameCounter >= this.frameDelay) {
-            this.frameCounter = 0;
+            this.frameCounter = 0
     
-            this.frame += this.frameDir;
+            this.frame += this.frameDir
     
-            // --- Richtungswechsel an den Enden ---
+            // Richtungswechsel an den Enden im Sprite
             if (this.frame >= totalFrames - 1) {
-                this.frame = totalFrames - 1;
-                this.frameDir = -1;
+                this.frame = totalFrames - 1
+                this.frameDir = -1
             } 
             else if (this.frame <= 0) {
-                this.frame = 0;
-                this.frameDir = 1;
+                this.frame = 0
+                this.frameDir = 1
             }
         }
     }
 
-    edges(turnStrength) {
-        let margin = 20
-        // links
-        if (this.position.x < margin) {
-            this.acceleration.x += turnStrength;
-        }
-        // rechts
-        if (this.position.x > width - margin) {
-            this.acceleration.x -= turnStrength;
-        }
-        // oben
-        if (this.position.y < margin) {
-            this.acceleration.y += turnStrength;
-        }
-        // unten
-        if (this.position.y > height - margin) {
-            this.acceleration.y -= turnStrength;
-        }
+    // prüft, ob Fisch außerhalb des Canvas ist
+    isOutOfBounds() {
+        let frameWidth = fishSprite.width / totalFrames
+        let frameHeight = fishSprite.height
+        let displayHeight = this.fishSize * (frameHeight / frameWidth)
+    
+        // Hälfte von Fisch
+        let halfW = this.fishSize / 2
+        let halfH = displayHeight / 2
+    
+        return (
+            this.position.x < -halfW ||
+            this.position.x > width + halfW ||
+            this.position.y < -halfH ||
+            this.position.y > height + halfH
+        )
     }
     
 
@@ -105,7 +106,6 @@ class Boid {
         return steering
     }
 
-
     cohesion(boids) {
         let perceptionRadius = 100
         let steering = createVector()
@@ -127,6 +127,7 @@ class Boid {
         return steering
     }
 
+    // Kombiniert Fisch-/Schwarmregeln und beinhaltet Fluchtverhalten vor Raubfisch(en)
     flock(boids) {
         let alignment = this.align(boids)
         let cohesion = this.cohesion(boids)
@@ -140,22 +141,18 @@ class Boid {
         this.acceleration.add(flee.mult(3))
     }
 
+    // damit Fisch von Raubfisch wegschwimmt (Fluchtrichtung); gibt Richtung vor
     fleePredators(predators){
         let flee = createVector()
         let fleeRadius = 180
         for(let p of predators){
+            // Entfernung zwischen Fisch und Raubfisch
             let d = p5.Vector.dist(this.position, p.position)
+            // damit Fisch in andere Richtung von Raubfisch flieht
             if(d < fleeRadius){
                 let away = p5.Vector.sub(this.position, p.position)
-                away.normalize()
-                away.div(d)
                 flee.add(away)
             }
-        }
-        if(flee.mag() > 0){
-            flee.setMag(this.maxSpeed)
-            flee.sub(this.velocity)
-            flee.limit(this.maxForce * 2)
         }
         return flee
     }
@@ -169,10 +166,10 @@ class Boid {
 
     // ChatGPT Start
     smoothRotate(){
-        let targetAngle = this.velocity.heading() + HALF_PI;
-        let diff = targetAngle - this.orientation;
-        diff = atan2(sin(diff), cos(diff)); // kleinster Winkel
-        this.orientation += diff * 0.08;     // weich über Frames
+        let targetAngle = this.velocity.heading() + HALF_PI
+        let diff = targetAngle - this.orientation
+        diff = atan2(sin(diff), cos(diff))
+        this.orientation += diff * 0.08
     }
     // ChatGPT Ende
 
@@ -180,33 +177,33 @@ class Boid {
         this.animateSprite();
         this.smoothRotate();
     
-        // Größe eines einzelnen Frames
-        let frameWidth = fishSprite.width / totalFrames;
-        let frameHeight = fishSprite.height;
+        // Größe eines Frames
+        let frameWidth = fishSprite.width / totalFrames
+        let frameHeight = fishSprite.height
     
-        // gewünschte Größe am Canvas
-        let displayWidth = 30;
-        let displayHeight = displayWidth * (frameHeight / frameWidth);
+        // Größe im Canvas
+        let displayHeight = this.fishSize * (frameHeight / frameWidth)
     
-        push();
-        translate(this.position.x, this.position.y);
-        rotate(this.orientation);
+        push()
+        translate(this.position.x, this.position.y)
+        rotate(this.orientation)
     
-        // --- SCHATTEN ---
-        noStroke();
-        fill(0, 40);
-        ellipse(3, 3, displayWidth * 0.9, displayHeight * 0.4);
+        // Schatten
+        noStroke()
+        fill(0, 40)
+        ellipse(0, 0, this.fishSize * 0.8, displayHeight * 0.6)
     
-        // --- SPRITE ---
-        imageMode(CENTER);
+        // Sprite von Mitte gezeichnet
+        imageMode(CENTER)
     
-        let sx = this.frame * frameWidth;
-        let sy = 0;
+        // startX /-Y im Spritebild -> für Einzelbilder
+        let sx = this.frame * frameWidth
+        let sy = 0
     
         image(
             fishSprite,
             0, 0,
-            displayWidth, displayHeight,
+            this.fishSize, displayHeight,
             sx, sy,
             frameWidth, frameHeight
         );

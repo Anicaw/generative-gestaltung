@@ -2,89 +2,82 @@ class Predator extends Boid {
     constructor(pos) {
         super()
         this.position = pos ? pos.copy() : createVector(random(width), random(height))
-        this.maxSpeed = 4
-        this.maxForce = 0.6
+        this.maxSpeed = 7
         this.isPredator = true
 
-        this.size = 20
-        this.maxSize = 100
+        this.size = 40
+        this.maxSize = 160
         this.growAmount = 6
 
         this.hasBurst = false
-
-        this.frame = 0
-        this.frameDelay = 6
-        this.frameCounter = 0
-        this.orientation = 0
     }
 
+    // um zum nächsten Fisch zu schwimmen
     flock(boids) {
+        // nächster Fisch
         let target = this.findClosestPrey(boids)
+        // wenn Fisch in der Nähe, verfolg diesen
         if (target) {
+            // Vektor Richtung Beutefisch
             let desired = p5.Vector.sub(target.position, this.position)
             desired.setMag(this.maxSpeed)
+            // um in Richtung der kleinen Fische zu lenken
             let steer = p5.Vector.sub(desired, this.velocity)
-            steer.limit(this.maxForce)
             this.acceleration.add(steer)
         }
     }
 
     edges() {
-        let margin = 50;
-        let maxForce = 0.4;
-    
-        // LINKER RAND
+        let margin = 50
+        let turnStrenght = 1.8
+        // links
         if (this.position.x < margin) {
-            let f = map(this.position.x, 0, margin, maxForce, 0);
-            this.acceleration.x += f;
+            this.acceleration.x += turnStrenght
         }
-    
-        // RECHTER RAND
+        // rechts
         if (this.position.x > width - margin) {
-            let f = map(this.position.x, width, width - margin, maxForce, 0);
-            this.acceleration.x -= f;
+            this.acceleration.x -= turnStrenght
         }
-    
-        // OBERER RAND
+        // oben
         if (this.position.y < margin) {
-            let f = map(this.position.y, 0, margin, maxForce, 0);
-            this.acceleration.y += f;
+            this.acceleration.y += turnStrenght
         }
-    
-        // UNTERER RAND
+        // unten
         if (this.position.y > height - margin) {
-            let f = map(this.position.y, height, height - margin, maxForce, 0);
-            this.acceleration.y -= f;
+            this.acceleration.y -= turnStrenght
         }
     }
     
-
+    // um den nächsten Fisch vom Raubfisch zu finden
     findClosestPrey(boids) {
         let minD = Infinity
-        let closest = 0
+        let closest = null
         for (let b of boids) {
+            // um Entfernung von Fisch zu berechnen, wenn dieser kein Raubfisch ist 
             if (!b.isPredator) {
                 let d = p5.Vector.dist(this.position, b.position)
+                // wenn der Abstand kleiner ist als minD, setze minD auf diesen Wert
                 if (d < minD) {
                     minD = d
                     closest = b
                 }
             }
         }
+        // gibt nächsten Fisch zurück
         return closest
     }
 
+    // handelt, wenn ein Fisch nah ist und gefressen wird
     eat(flock){
         let prey = this.findClosestPrey(flock)
-        if(!prey){
-            return
-        }
         let d = p5.Vector.dist(this.position, prey.position)
-        if(d < this.size * 0.5){
+        if(d < this.size * 0.8){
+            // Sound, "Explosion", Wachsen
             waterSound.play(0, 1, 1, 0, 0.9)
             eating.play(0, 1, 1, 0, 0.7)
             particleBursts.push(new ParticleBurst(prey.position.copy()))
             this.size += this.growAmount
+            // gefressenen Fisch aus Array entfernen
             let index = flock.indexOf(prey)
             if(index > -1){
                 flock.splice(index, 1)
@@ -92,6 +85,7 @@ class Predator extends Boid {
         }
     }
 
+    // Raubfisch platzt, wenn er maximale Größe erreicht hat 
     burst(){
         if (this.hasBurst) return
         this.hasBurst = true
@@ -102,7 +96,6 @@ class Predator extends Boid {
         burstPredator.stop()
         burstPredator.play(0, random(0.9, 1.1), 1, 0, 0.9)
     }
-    
 
     update(){
         this.edges()
@@ -122,9 +115,8 @@ class Predator extends Boid {
         let frameWidth = predatorSprite.width / totalFrames
         let frameHeight = predatorSprite.height
     
-        // größer als normale Fische
-        let displayWidth = map(this.size, 20, this.maxSize, 20, 80)
-        let displayHeight = displayWidth * (frameHeight / frameWidth)
+        // größe
+        let displayHeight = this.size * (frameHeight / frameWidth)
     
         push()
         translate(this.position.x, this.position.y)
@@ -132,8 +124,8 @@ class Predator extends Boid {
     
         // Schatten
         noStroke()
-        fill(0, 50)
-        ellipse(5, 5, displayWidth * 0.9, displayHeight * 0.4)
+        fill(0, 40)
+        ellipse(0, 0, this.size * 0.8, displayHeight * 0.7)
     
         imageMode(CENTER)
     
@@ -142,8 +134,8 @@ class Predator extends Boid {
         image(
             predatorSprite,
             0, 0,
-            displayWidth, displayHeight,
-            sx, 0,
+            this.size, displayHeight,
+            sx, 0, 
             frameWidth, frameHeight
         )
     

@@ -60,5 +60,14 @@
  Sprites
  https://www.deviantart.com/mr-skurleton/art/Betta-fish-rpg-maker-sprites-1001516514
  
- Bild
+ Bild / Video
  Steine Hintergrund: https://pixabay.com/de/photos/kieselsteine-steine-textur-muster-4499676/
+ Sand Hintergrund: https://pixabay.com/de/photos/meeresboden-sand-meer-strand-180539/
+ Wellen Video: https://pixabay.com/de/videos/live-wallpaper-meer-wasser-wellen-112722/
+
+ Code
+ Grundgrüst mit: Daniel Shiffman, "Coding Challenge 124: Flocking Simulation" auf YouTube https://www.youtube.com/watch?v=mhjuuHl6qHM
+ Funktion "drawBgImageOnce()" in sketch_a5.js und "smoothRotate()" in boid.js von ChatGPT
+
+ Sonstiges
+ Sprite bearbeitet mit Photopea
