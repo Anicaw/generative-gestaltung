@@ -71,3 +71,12 @@
 
  Sonstiges
  Sprite bearbeitet mit Photopea
+
+
+ Projektabgabe:
+ Video
+ Atombombe mit Stadt: https://pixabay.com/de/videos/atombombe-feuer-atomar-bombe-184061/
+ Atombombe (schwarz): https://pixabay.com/de/videos/explosion-inlay-explodieren-feuer-16640/
+
+ Code
+ Pflanze wächst: https://editor.p5js.org/BarneyCodes/sketches/4y0dLXw6Z
