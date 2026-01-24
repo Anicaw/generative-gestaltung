@@ -57,6 +57,7 @@ let branches = []
 
 function setup(){
   createCanvas(800, 800, WEBGL)
+  background(240)
   angleMode(DEGREES)
 
   // Start-Branch: ein Stamm
@@ -66,6 +67,60 @@ function setup(){
   let root = new Branch(startPos, startDir, 8, 0)
   branches.push(root)
 }
+
+// function drawLeaf3D(x, y, z, angle, length, tilt) {
+//   push()
+//   translate(x, y, z)
+
+//   // Ausrichtung
+//   rotateZ(angle)
+//   rotateX(tilt)
+
+//   fill(50, 150, 50)
+//   noStroke()
+
+//   beginShape()
+//   vertex(0, 0)
+//   bezierVertex(10, -length / 2, 20, -length / 2, 0, -length)
+//   bezierVertex(-20, -length / 2, -10, -length / 2, 0, 0)
+//   endShape(CLOSE)
+
+//   pop()
+// }
+
+function drawLeaf3D(x, y, z, dir, angle, length) {
+  push()
+  translate(x, y, z)
+
+  // Richtung des Astes normalisieren
+  let d = dir.copy().normalize()
+
+  // Aus dir einen Rotationswinkel bauen
+  // Projektion auf XZ-Ebene
+  let yaw = atan2(d.x, d.z)
+  let pitch = -asin(d.y)
+
+  rotateY(yaw)
+  rotateX(pitch)
+
+  // Seitliche Abweichung vom Ast
+  rotateZ(angle)
+  rotateX(-20)
+
+
+
+  fill(50, 150, 50)
+  noStroke()
+
+  beginShape()
+  vertex(0, 0)
+  bezierVertex(10, -length / 2, 20, -length / 2, 0, -length)
+  bezierVertex(-20, -length / 2, -10, -length / 2, 0, 0)
+  endShape(CLOSE)
+
+  pop()
+}
+
 
 function draw(){
   // background(240)
@@ -91,5 +146,7 @@ function draw(){
   for (let nb of newBranches) {
     branches.push(nb)
   }
+
+
 }
 
