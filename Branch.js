@@ -21,28 +21,28 @@ class Branch {
     grow() {
         if (!this.alive) return
 
-        // let step = 1
-        // let step = random(0.3, 2)
+        let up = createVector(0, -1)
+
         let lifeRatio = this.age / this.maxAge
         let step = map(lifeRatio, 0, 1, 1.2, 0.1)
 
-
-
-        // 3D-Noise für organische Krümmung
-        let n1 = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
-        let n2 = noise(this.pos.z * 0.01, this.pos.y * 0.01, frameCount * 0.01 + 100)
+        let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
 
         let bend = createVector(
-            map(n1, 0, 1, -0.1, 0.01),
-            0,
-            map(n2, 0, 1, -0.1, 0.1)
+            map(n, 0, 1, -0.1, 0.1),
+            0
         )
 
         this.dir.add(bend).normalize()
 
+        // sanfter Bias nach oben
+        let biasStrength = 0.02
+        this.dir.lerp(createVector(0, -1), biasStrength)
+        this.dir.normalize()
+
+
         // Neue Position
         let newPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, step))
-        let lastPoint = this.points[this.points.length - 1]
 
         // Punkt speichern
         this.pos = newPos
@@ -57,14 +57,14 @@ class Branch {
 
         // Zufällig ein Blatt anlegen (nur bei jüngeren Zweigen)
         if (this.depth >= 1 && this.depth <= 3) {
-            if (random() < 0.01) {   // 2% Chance pro Schritt
+            if (random() < 0.002) {   // 1% Chance pro Schritt
                 this.addLeaf()
             }
         }
 
         for (let leaf of this.leaves) {
             if (leaf.growing) {
-                leaf.length += 0.5
+                leaf.length += 0.1
                 if (leaf.length > leaf.maxLength) {
                     leaf.length = leaf.maxLength
                     leaf.growing = false
@@ -90,9 +90,7 @@ class Branch {
     trySplit() {
         if (this.depth >= 4) return
         if (this.hasSplit) return
-        // if (this.age < 20) return
         if (this.age - this.lastSplitAge < 40) return
-
 
         let n = noise(
             this.pos.x * 0.02,
@@ -109,18 +107,18 @@ class Branch {
     split() {
         // Zwei neue Richtungen erzeugen
         let baseDir = this.dir.copy()
-        let spread = 100
+        let spread = 50
 
         let offset1 = createVector(
             random(-spread, spread),
             random(-spread, spread),
-            random(-spread, spread)
+            // random(-spread, spread)
         )
 
         let offset2 = createVector(
             random(-spread, spread),
             random(-spread, spread),
-            random(-spread, spread)
+            // random(-spread, spread)
         )
 
         let dir1 = p5.Vector.add(baseDir, offset1).normalize()
@@ -135,7 +133,6 @@ class Branch {
         let backOffset = p5.Vector.mult(this.dir, -5)
         let splitPos = p5.Vector.add(this.pos, backOffset)
 
-
         let b1 = new Branch(splitPos, dir1, newThickness, this.depth + 1)
         let b2 = new Branch(splitPos, dir2, newThickness, this.depth + 1)
 
@@ -149,25 +146,26 @@ class Branch {
         let a = this.points[i]
         let b = this.points[i + 1]
 
-        // let t = i / this.points.length
-        // let w = lerp(this.thickness, 1, t)
+            // Alter der Linie bestimmen (zwischen 0 und 1)
+    let ageRatio = this.age / this.maxAge;
+
+    // Farbe nach Alter: jung = cyan, alt = dunkelviolett
+    stroke(lerpColor(color(0, 255, 255), color(50, 0, 100), ageRatio));
+        // stroke(0, 100, 100, 180);
         strokeWeight(a.w)
 
-        line(a.pos.x, a.pos.y, a.pos.z, b.pos.x, b.pos.y, b.pos.z)
+        line(a.pos.x, a.pos.y, b.pos.x, b.pos.y)
 
         // Blätter zeichnen
         for (let leaf of this.leaves) {
-            drawLeaf3D(
+            drawLeaf2D(
                 leaf.pos.x,
                 leaf.pos.y,
-                leaf.pos.z,
                 leaf.dir,
                 leaf.angle,
                 leaf.length
             )
-            
         }
-
     }
 
     addLeaf() {
@@ -181,10 +179,10 @@ class Branch {
             pos: p,
             angle: angle,
             tilt: tilt,
-            length: random(10, 30),   // Startlänge
-            maxLength: random(80, 180),
+            length: random(3, 10),   // Startlänge
+            maxLength: random(20, 100),
             growing: true,
-            dir: this.dir.copy() 
+            dir: this.dir.copy()
         })
     }
 

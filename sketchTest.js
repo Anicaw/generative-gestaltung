@@ -55,61 +55,35 @@
 
 let branches = []
 
-function setup(){
-  createCanvas(800, 800, WEBGL)
+function setup() {
+  createCanvas(800, 800)
   background(240)
   angleMode(DEGREES)
 
   // Start-Branch: ein Stamm
-  let startPos = createVector(0, 300, 0)
-  let startDir = createVector(0, -1, 0)
+  let startPos = createVector(width / 2, height - 50)  // unten in der Mitte
+  let startDir = createVector(0, -1)
 
-  let root = new Branch(startPos, startDir, 8, 0)
+  let root = new Branch(startPos, startDir, 12, 0)
   branches.push(root)
 }
 
-// function drawLeaf3D(x, y, z, angle, length, tilt) {
-//   push()
-//   translate(x, y, z)
-
-//   // Ausrichtung
-//   rotateZ(angle)
-//   rotateX(tilt)
-
-//   fill(50, 150, 50)
-//   noStroke()
-
-//   beginShape()
-//   vertex(0, 0)
-//   bezierVertex(10, -length / 2, 20, -length / 2, 0, -length)
-//   bezierVertex(-20, -length / 2, -10, -length / 2, 0, 0)
-//   endShape(CLOSE)
-
-//   pop()
-// }
-
-function drawLeaf3D(x, y, z, dir, angle, length) {
+function drawLeaf2D(x, y, dir, angle, length) {
   push()
-  translate(x, y, z)
+  translate(x, y)
 
-  // Richtung des Astes normalisieren
-  let d = dir.copy().normalize()
+  // Richtung des Astes als Winkel
+  let theta = atan2(dir.y, dir.x)
 
-  // Aus dir einen Rotationswinkel bauen
-  // Projektion auf XZ-Ebene
-  let yaw = atan2(d.x, d.z)
-  let pitch = -asin(d.y)
+  rotate(theta + angle)
 
-  rotateY(yaw)
-  rotateX(pitch)
-
-  // Seitliche Abweichung vom Ast
-  rotateZ(angle)
-  rotateX(-20)
+  let hue = map(y, 0, height, 300, 360); // pink → lila
+  fill(hue, 80, 100);
+  drawingContext.shadowBlur = 10;
+  drawingContext.shadowColor = color(0, 255, 255, 100); // cyan glow
 
 
-
-  fill(50, 150, 50)
+  // fill(50, 150, 50)
   noStroke()
 
   beginShape()
@@ -121,12 +95,7 @@ function drawLeaf3D(x, y, z, dir, angle, length) {
   pop()
 }
 
-
-function draw(){
-  // background(240)
-  orbitControl(2, 2)
-  rotateX(60)
-
+function draw() {
   let newBranches = []
 
   for (let b of branches) {
