@@ -1,6 +1,6 @@
 
 class Branch {
-    constructor(pos, dir, thickness, depth) {
+    constructor(pos, dir, thickness, depth, baseColor) {
         this.pos = pos.copy()        // aktuelle Spitze
         this.dir = dir.copy().normalize()
         this.thickness = thickness // Stammdicke
@@ -16,6 +16,12 @@ class Branch {
         this.lastSplitAge = 0
 
         this.leaves = []
+
+        if (baseColor) {
+            this.baseColor = baseColor
+        } else {
+            this.baseColor = color(0, 255, 255)
+        }
     }
 
     grow() {
@@ -36,7 +42,7 @@ class Branch {
         this.dir.add(bend).normalize()
 
         // sanfter Bias nach oben
-        let biasStrength = 0.02
+        let biasStrength = 0.05
         this.dir.lerp(createVector(0, -1), biasStrength)
         this.dir.normalize()
 
@@ -130,11 +136,20 @@ class Branch {
         let currentThickness = lastPoint.w
         let newThickness = currentThickness * 0.8
 
+        // Farbe am Abzweigungspunkt bestimmen (aus Alter)
+        let ageRatio = this.age / this.maxAge
+        let currentColor = lerpColor(
+            color(0, 255, 255),
+            color(50, 0, 100),
+            ageRatio
+        )
+
+
         let backOffset = p5.Vector.mult(this.dir, -5)
         let splitPos = p5.Vector.add(this.pos, backOffset)
 
-        let b1 = new Branch(splitPos, dir1, newThickness, this.depth + 1)
-        let b2 = new Branch(splitPos, dir2, newThickness, this.depth + 1)
+        let b1 = new Branch(splitPos, dir1, newThickness, this.depth + 1, currentColor)
+        let b2 = new Branch(splitPos, dir2, newThickness, this.depth + 1, currentColor)
 
         this.newChildren = [b1, b2]
     }
@@ -146,11 +161,12 @@ class Branch {
         let a = this.points[i]
         let b = this.points[i + 1]
 
-            // Alter der Linie bestimmen (zwischen 0 und 1)
-    let ageRatio = this.age / this.maxAge;
+        // Alter der Linie bestimmen (zwischen 0 und 1)
+        let ageRatio = this.age / this.maxAge;
 
-    // Farbe nach Alter: jung = cyan, alt = dunkelviolett
-    stroke(lerpColor(color(0, 255, 255), color(50, 0, 100), ageRatio));
+        // Farbe nach Alter: jung = cyan, alt = dunkelviolett
+        let targetColor = color(50, 0, 100)
+        stroke(lerpColor(this.baseColor, targetColor, ageRatio));
         // stroke(0, 100, 100, 180);
         strokeWeight(a.w)
 
