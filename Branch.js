@@ -11,7 +11,7 @@ class Branch {
 
         this.age = 0
         this.alive = true
-        this.maxAge = int(random(80, 500)) - this.depth * 20
+        this.maxAge = int(random(180, 800)) - this.depth * 20
         this.hasSplit = false
         this.lastSplitAge = 0
 
@@ -25,78 +25,114 @@ class Branch {
     }
 
     grow() {
-        if (!this.alive) return
 
-        let up = createVector(0, -1)
-
-        let lifeRatio = this.age / this.maxAge
-        let step = map(lifeRatio, 0, 1, 1.2, 0.1)
-
-        let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
-
-        let bend = createVector(
-            map(n, 0, 1, -0.1, 0.1),
-            0
-        )
-
-        this.dir.add(bend).normalize()
-
-        // sanfter Bias nach oben
-        let biasStrength = 0.05
-        this.dir.lerp(createVector(0, -1), biasStrength)
-        this.dir.normalize()
-
-
-        // Neue Position
-        let newPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, step))
-
-        // Punkt speichern
-        this.pos = newPos
-
-        let w = this.thickness * (1 - 0.002 * this.age * random(0.9, 1.1))
-        w = max(w, this.thickness * 0.7)
-
-        this.points.push({
-            pos: this.pos.copy(),
-            w: w
-        })
-
-        // Zufällig ein Blatt anlegen (nur bei jüngeren Zweigen)
-        if (this.depth >= 1 && this.depth <= 3) {
-            if (random() < 0.002) {   // 1% Chance pro Schritt
-                this.addLeaf()
-            }
-        }
-
-        for (let leaf of this.leaves) {
-            if (leaf.growing) {
-                leaf.length += 0.1
-                if (leaf.length > leaf.maxLength) {
-                    leaf.length = leaf.maxLength
-                    leaf.growing = false
+        // -----------------------------
+        // 1. Ast-Wachstum (nur wenn alive)
+        // -----------------------------
+        if (this.alive) {
+    
+            // wie schnell Äste wachsen
+            let lifeRatio = this.age / this.maxAge
+            let step = map(lifeRatio, 0, 1, 1, 0.05)
+    
+            let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
+    
+            let bend = createVector(
+                map(n, 0, 1, -0.1, 0.1),
+                0
+            )
+    
+            this.dir.add(bend).normalize()
+    
+            // damit Äste eher nach oben wachsen
+            let biasStrength = 0.01
+            this.dir.lerp(createVector(0, -1), biasStrength)
+            this.dir.normalize()
+    
+            // Neue Position
+            let newPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, step))
+            this.pos = newPos
+    
+            let w = this.thickness * (1 - 0.002 * this.age * random(0.9, 1.1))
+            w = max(w, this.thickness * 0.7)
+    
+            this.points.push({
+                pos: this.pos.copy(),
+                w: w
+            })
+    
+            // Zufällig ein Blatt anlegen (nur bei jüngeren Zweigen)
+            if (this.depth >= 1 && this.depth <= 3) {
+                if (random() < 0.002) {
+                    this.addLeaf()
                 }
             }
+    
+            // Blatt-Wachstum (Größe)
+            for (let leaf of this.leaves) {
+                if (leaf.growing) {
+                    leaf.length += 0.1
+                    if (leaf.length > leaf.maxLength) {
+                        leaf.length = leaf.maxLength
+                        leaf.growing = false
+                    }
+                }
+            }
+    
+            this.age++
+    
+            if (this.age > this.maxAge) {
+                this.alive = false
+            }
+    
+            this.trySplit()
         }
-
-        this.age++
-
-        if (this.age > this.maxAge) {
-            this.alive = false
-            return
+    
+        // ---------------------------------
+        // 2. Blatt-Physik (IMMER ausführen)
+        // ---------------------------------
+        for (let leaf of this.leaves) {
+    
+            // Wenn Herbst begonnen hat → Blatt loslassen
+            if (allFinished && !leaf.falling) {
+                let t = frameCount - finishFrame
+    
+                if (t > leaf.fallDelay) {
+                    leaf.falling = true
+    
+                    // kleine Startbewegung
+                    leaf.vel = createVector(
+                        random(-0.3, 0.3),
+                        random(0.5, 1.5)
+                    )
+                }
+            }
+    
+            // Wenn Blatt fällt → Physik anwenden
+            if (leaf.falling) {
+    
+                // Schwerkraft
+                leaf.vel.y += 0.05
+    
+                // leichter Wind
+                leaf.vel.x += random(-0.02, 0.02)
+    
+                // Position updaten
+                leaf.pos.add(leaf.vel)
+            }
         }
-
-        this.trySplit()
-
-        // Stop-Bedingung (fürs Erste)
-        if (this.pos.y < -300) {
-            this.alive = false
-        }
+    
+        // ---------------------------------
+        // 3. Gefallene Blätter entfernen
+        // ---------------------------------
+        this.leaves = this.leaves.filter(leaf => leaf.pos.y < height + 100)
     }
+    
 
     trySplit() {
         if (this.depth >= 4) return
         if (this.hasSplit) return
-        if (this.age - this.lastSplitAge < 40) return
+        if (this.age - this.lastSplitAge < 60) return
 
         let n = noise(
             this.pos.x * 0.02,
@@ -156,33 +192,40 @@ class Branch {
 
     display() {
         if (this.points.length < 2) return
-
-        let i = this.points.length - 2
-        let a = this.points[i]
-        let b = this.points[i + 1]
-
-        // Alter der Linie bestimmen (zwischen 0 und 1)
-        let ageRatio = this.age / this.maxAge;
-
-        // Farbe nach Alter: jung = cyan, alt = dunkelviolett
-        let targetColor = color(50, 0, 100)
-        stroke(lerpColor(this.baseColor, targetColor, ageRatio));
-        // stroke(0, 100, 100, 180);
-        strokeWeight(a.w)
-
-        line(a.pos.x, a.pos.y, b.pos.x, b.pos.y)
-
-        // Blätter zeichnen
-        for (let leaf of this.leaves) {
-            drawLeaf2D(
-                leaf.pos.x,
-                leaf.pos.y,
-                leaf.dir,
-                leaf.angle,
-                leaf.length
-            )
+    
+        // Farb-Logik (wie vorher)
+        let ageRatio = constrain(this.age / this.maxAge, 0, 1)
+    
+        let youngColor = this.baseColor
+        let oldColor = color(50, 0, 100)
+        let currentColor = lerpColor(youngColor, oldColor, ageRatio)
+    
+        if (allFinished) {
+            let t = constrain((frameCount - finishFrame) / 200, 0, 1)
+            currentColor = lerpColor(currentColor, finalColor, t)
         }
+    
+        stroke(currentColor)
+        noFill()
+    
+        // WICHTIG: alle Segmente neu zeichnen
+        for (let i = 0; i < this.points.length - 1; i++) {
+            let a = this.points[i]
+            let b = this.points[i + 1]
+    
+            strokeWeight(a.w)
+            line(a.pos.x, a.pos.y, b.pos.x, b.pos.y)
+        }
+    
+        for (let leaf of this.leaves) {
+            // nur zeichnen, wenn noch im Bild
+            if (leaf.pos.y < height + 50) {
+                drawLeaf2D(leaf)
+            }
+        }
+              
     }
+    
 
     addLeaf() {
         let p = this.pos.copy()
@@ -198,7 +241,15 @@ class Branch {
             length: random(3, 10),   // Startlänge
             maxLength: random(20, 100),
             growing: true,
-            dir: this.dir.copy()
+            dir: this.dir.copy(),
+            autumnColor: color(
+                random(120, 180),
+                random(60, 120),
+                0
+            ),
+            falling: false,
+            vel: createVector(0, 0),
+            fallDelay: int(random(0, 120)) 
         })
     }
 

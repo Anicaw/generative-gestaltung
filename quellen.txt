@@ -78,6 +78,10 @@
  Atombombe mit Stadt: https://pixabay.com/de/videos/atombombe-feuer-atomar-bombe-184061/
  Atombombe (schwarz): https://pixabay.com/de/videos/explosion-inlay-explodieren-feuer-16640/
 
+ Bilder
+ Emprire State: https://pixabay.com/de/vectors/empire-state-building-geb%c3%a4ude-stadt-7845819/
+ Retro Gebäude hintergund: https://de.pinterest.com/pin/futurism-cityscape-at-sunset--11047961580249516/
+
  Code
  Pflanze wächst: https://editor.p5js.org/BarneyCodes/sketches/4y0dLXw6Z
  Blatt wächst: https://editor.p5js.org/adina_nicola/sketches/9GkR_bySW
