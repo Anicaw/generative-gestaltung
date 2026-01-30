@@ -20,7 +20,7 @@ class Branch {
         if (baseColor) {
             this.baseColor = baseColor
         } else {
-            this.baseColor = color(0, 255, 255)
+            this.baseColor = TECH_COLORS.young
         }
     }
 
@@ -175,8 +175,8 @@ class Branch {
         // Farbe am Abzweigungspunkt bestimmen (aus Alter)
         let ageRatio = this.age / this.maxAge
         let currentColor = lerpColor(
-            color(0, 255, 255),
-            color(50, 0, 100),
+            TECH_COLORS.young,
+            TECH_COLORS.mid,
             ageRatio
         )
 
@@ -196,13 +196,27 @@ class Branch {
         // Farb-Logik (wie vorher)
         let ageRatio = constrain(this.age / this.maxAge, 0, 1)
     
-        let youngColor = this.baseColor
-        let oldColor = color(50, 0, 100)
-        let currentColor = lerpColor(youngColor, oldColor, ageRatio)
+        let currentColor
+
+        if (ageRatio < 0.5) {
+          currentColor = lerpColor(
+            TECH_COLORS.young,
+            TECH_COLORS.mid,
+            ageRatio * 2
+          )
+        } else {
+          currentColor = lerpColor(
+            TECH_COLORS.mid,
+            TECH_COLORS.old,
+            (ageRatio - 0.5) * 2
+          )
+        }
+        
     
         if (allFinished) {
             let t = constrain((frameCount - finishFrame) / 200, 0, 1)
-            currentColor = lerpColor(currentColor, finalColor, t)
+            currentColor = lerpColor(currentColor, TECH_COLORS.dead, t)
+              
         }
     
         stroke(currentColor)
@@ -212,10 +226,27 @@ class Branch {
         for (let i = 0; i < this.points.length - 1; i++) {
             let a = this.points[i]
             let b = this.points[i + 1]
-    
-            strokeWeight(a.w)
-            line(a.pos.x, a.pos.y, b.pos.x, b.pos.y)
-        }
+          
+            for (let k = 0; k < 2; k++) {
+              strokeWeight(a.w * (1 - k * 0.3))
+              line(
+                a.pos.x + random(-0.3, 0.3),
+                a.pos.y,
+                b.pos.x + random(-0.3, 0.3),
+                b.pos.y
+              )
+            }
+          }
+
+          for (let p of this.points) {
+            if (random() < 0.05) {
+              fill(TECH_COLORS.glow)
+              noStroke()
+              circle(p.pos.x, p.pos.y, random(2, 5))
+            }
+          }
+          
+          
     
         for (let leaf of this.leaves) {
             // nur zeichnen, wenn noch im Bild

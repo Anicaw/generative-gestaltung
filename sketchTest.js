@@ -58,6 +58,7 @@ let branches = []
 let allFinished = false
 let finishFrame = 0
 let finalColor
+let TECH_COLORS = {}
 
 var bgimg
 
@@ -69,6 +70,14 @@ function preload() {
 function setup() {
   createCanvas(800, 800)
   // background(240)
+  TECH_COLORS = {
+    young: color(0, 255, 220),   // Neon Cyan
+    mid: color(180, 80, 255),  // Electric Purple
+    old: color(255, 60, 180),  // Magenta
+    dead: color(40, 20, 60),    // Dunkles Violett (kein Braun!)
+    leaf: color(0, 255, 180),
+    glow: color(0, 255, 255, 120)
+  }
   image(bgimg, 0, 0, width, height)
 
   // Startpos und -richtung von Stamm
@@ -78,6 +87,8 @@ function setup() {
   let root = new Branch(startPos, startDir, 15, 0)
   branches.push(root)
 }
+
+
 
 function drawLeaf2D(leaf) {
   let x = leaf.pos.x
@@ -92,12 +103,9 @@ function drawLeaf2D(leaf) {
   let theta = atan2(dir.y, dir.x)
   rotate(theta + angle)
 
-  // Ausgangsfarbe
-  let baseLeafColor = color(
-    map(y, 0, height, 100, 180),
-    200,
-    200
-  )
+  let baseLeafColor = TECH_COLORS.leaf
+  drawingContext.shadowColor = TECH_COLORS.glow
+
 
   let leafColor = baseLeafColor
 
@@ -114,17 +122,22 @@ function drawLeaf2D(leaf) {
 
   strokeWeight(1)
 
-  beginShape()
-  vertex(0, 0)
-  bezierVertex(10, -5, 20, -1, 0, -length)
-  bezierVertex(-20, -1, -10, -1, 0, 0)
-  endShape(CLOSE)
+  stroke(TECH_COLORS.leaf)
+  strokeWeight(1)
+  line(0, 0, 0, -length)
+  
+  fill(TECH_COLORS.glow)
+  circle(0, -length, 4)
+  rotate(sin(frameCount * 0.02 + x * 0.01) * 0.1)
+
 
   pop()
 }
 
 function draw() {
+
   image(bgimg, 0, 0, width, height)
+  // blendMode(ADD)
 
   let newBranches = []
 
@@ -141,7 +154,8 @@ function draw() {
   if (!anyAlive && !allFinished) {
     allFinished = true
     finishFrame = frameCount
-    finalColor = color(120, 80, 40) // BRAUN
+    finalColor = TECH_COLORS.dead
+
   }
 
 
@@ -161,6 +175,16 @@ function draw() {
   // nach der Schleife hinzufügen
   for (let nb of newBranches) {
     branches.push(nb)
+  }
+  blendMode(BLEND)
+
+  noStroke()
+  fill(0, 20)
+
+  // leichte Linien für mehr "Tech"-Look
+  let offset = frameCount % 4
+  for (let y = offset; y < height; y += 4) {
+    rect(0, y, width, 1)
   }
 
 }
