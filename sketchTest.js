@@ -52,10 +52,12 @@
 //   return 1 + A * pow(r, 2) * sin(f * angle)
 // }
 
-let obstacles = [];
+// let obstacles = [];
 
 let branches = []
 let particles = []
+
+let car
 
 let allFinished = false
 let finishFrame = 0
@@ -70,7 +72,8 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(800, 800)
+  createCanvas(windowWidth, windowHeight)
+  frameRate(60)
   TECH_COLORS = {
     young: color(0, 255, 220),   // Neon Cyan
     mid: color(180, 80, 255),    // Electric Purple
@@ -81,15 +84,13 @@ function setup() {
   }
   image(bgimg, 0, 0, width, height)
 
-  obstacles.push({ x: 250, y: 300, w: 100, h: 300 });
-
-  obstacles.push({ x: 450, y: 400, w: 100, h: 300 });
+  car = new Car()
 
   // Startpos und -richtung von Stamm
   let startPos = createVector(width / 2, height - 50)
   let startDir = createVector(0, -1)
 
-  let root = new Branch(startPos, startDir, 15, 0)
+  let root = new Branch(startPos, startDir, random(25, 50), 0)
   branches.push(root)
 }
 
@@ -120,12 +121,12 @@ function drawLeaf2D(leaf) {
   drawingContext.shadowBlur = 5
   drawingContext.shadowColor = color(0, 255, 255, 100)
 
-  strokeWeight(1)
+  strokeWeight(2)
   stroke(TECH_COLORS.leaf)
   line(0, 0, 0, -length)
 
   fill(TECH_COLORS.glow)
-  circle(0, -length, 4)
+  circle(0, -length, 5)
   rotate(sin(frameCount * 0.02 + x * 0.01) * 0.1)
 
   pop()
@@ -141,11 +142,16 @@ function startDisintegration() {
 function draw() {
   image(bgimg, 0, 0, width, height)
 
-  for (let obs of obstacles) {
-    fill(150, 100, 50, 150);
-    noStroke();
-    rect(obs.x, obs.y, obs.w, obs.h);
-  }
+  // Framerate anzeigen
+  fill(255)             // Weißer Text
+  noStroke()
+  textSize(20)
+  textAlign(LEFT, TOP)
+  text("FPS: " + floor(frameRate()), 10, 10)
+
+  car.update()
+  car.display()
+
 
   // Prüfen, ob noch irgendein Ast lebt
   let anyAlive = false

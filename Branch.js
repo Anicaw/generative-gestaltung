@@ -8,7 +8,7 @@ class Branch {
     this.points = [{ pos: this.pos.copy(), w: this.thickness }]
     this.age = 0
     this.alive = true
-    this.maxAge = int(random(180, 800)) - this.depth * 20
+    this.maxAge = int(random(180, 600)) - this.depth * 20
     this.hasSplit = false
     this.lastSplitAge = 0
     this.leaves = []
@@ -17,6 +17,12 @@ class Branch {
     this.disintegrateStartFrame = null
     this.disintegrating = false
     this.disintegrateIndex = null
+
+    this.restAngle = this.dir.heading()
+    this.swingAngle = 0
+    this.swingVel = 0
+    this.swingStrength = map(this.thickness, 5, 40, 0.08, 0.02)
+
   }
 
   grow() {
@@ -26,38 +32,36 @@ class Branch {
     if (this.alive && random() < 0.6) return;
 
     if (this.alive) {
+      // // Wind vom Auto
+      // let d = dist(this.pos.x, this.pos.y, car.x, car.y)
+
+      // if (d < car.windRadius) {
+      //   let strength = map(d, 0, car.windRadius, car.windStrength, 0)
+      //   let windDir = p5.Vector.sub(this.pos, createVector(car.x, car.y)).normalize()
+
+      //   // seitlicher Windstoß
+      //   this.dir.add(windDir.mult(strength)).normalize()
+      // }
+
+
       let lifeRatio = this.age / this.maxAge
-      let step = map(lifeRatio, 0, 1, 1, 0.05)
+      // let step = map(lifeRatio, 0, 1, 1.5, 0.05)
+      let speedFactor = 2  // 2 = doppelte Geschwindigkeit
+      let step = map(lifeRatio, 0, 1, 1.5, 0.05) * speedFactor
+      this.pos.add(p5.Vector.mult(this.dir, step))
       let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
       let bend = createVector(map(n, 0, 1, -0.1, 0.1), 0)
       this.dir.add(bend).normalize()
-      this.dir.lerp(createVector(0, -1), 0.01).normalize()
+      // this.dir.lerp(createVector(0, -1), 0.01).normalize()
+      this.dir.lerp(createVector(0, -1), 0.005)
 
-      for (let obs of obstacles) {
-        // Mittelpunkt des Rechtecks
-        let targetX = obs.x + obs.w / 2;
-        let targetY = obs.y;
-      
-        // Abstand zum Rechteck
-        let dX = targetX - this.pos.x;
-        let dY = targetY - this.pos.y;
-      
-        // Nur reagieren, wenn der Ast unterhalb oder innerhalb des Rechtecks ist
-        if (this.pos.y > obs.y && this.pos.y < obs.y + obs.h && abs(dX) < obs.w / 2 + 20) {
-          // Richtung zum oberen Punkt des Rechtecks
-          let attractDir = createVector(dX, dY);
-          attractDir.setMag(0.5); // Stärke der Anziehung
-          this.dir.lerp(attractDir, 0.2); // Sanft die Richtung anpassen
-          this.dir.normalize();
-        }
-      }
-      
+
       this.pos.add(p5.Vector.mult(this.dir, step))
 
       let w = max(this.thickness * (1 - 0.002 * this.age * random(0.9, 1.1)), this.thickness * 0.7)
       this.points.push({ pos: this.pos.copy(), w: w })
 
-      if (this.depth >= 1 && this.depth <= 3 && random() < 0.002) this.addLeaf()
+      if (this.depth >= 1 && this.depth <= 3 && random() < 0.005) this.addLeaf()
 
       for (let leaf of this.leaves) {
         if (leaf.growing) {
@@ -108,11 +112,18 @@ class Branch {
       this.disintegrate();
     }
 
+    // Punkte, die außerhalb des Canvas liegen, entfernen
+    this.points = this.points.filter(p =>
+      p.pos.x >= -50 && p.pos.x <= width + 50 &&
+      p.pos.y >= -50 && p.pos.y <= height + 50
+    )
+
   }
 
   trySplit() {
     if (this.depth >= 4 || this.hasSplit || this.age - this.lastSplitAge < 60) return
-    if (noise(this.pos.x * 0.02, this.pos.y * 0.02, frameCount * 0.01 + this.depth * 10) > 0.5 + random(-0.1, 0.1)) {
+    let chance = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
+    if (chance > 0.1 + random(-0.1, 0.1)) {
       this.split()
       this.hasSplit = true
     }
@@ -120,11 +131,16 @@ class Branch {
 
   split() {
     let baseDir = this.dir.copy()
-    let spread = 50
-    let dir1 = p5.Vector.add(baseDir, createVector(random(-spread, spread), random(-spread, spread))).normalize()
-    let dir2 = p5.Vector.add(baseDir, createVector(random(-spread, spread), random(-spread, spread))).normalize()
+
+    // Zufällige leichte Abweichung von ±15 Grad
+    let angleOffset1 = radians(random(-70, 70))
+    let angleOffset2 = radians(random(-70, 70))
+    // Kindrichtungen
+    let dir1 = p5.Vector.fromAngle(baseDir.heading() + angleOffset1)
+    let dir2 = p5.Vector.fromAngle(baseDir.heading() + angleOffset2)
+
     let lastPoint = this.points[this.points.length - 1]
-    let newThickness = lastPoint.w * 0.8
+    let newThickness = lastPoint.w * 0.9
     let ageRatio = this.age / this.maxAge
     let currentColor = lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio)
     let splitPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, -5))
@@ -141,7 +157,7 @@ class Branch {
     let t = frameCount - this.disintegrateStartFrame;
 
     // kurze aktive Phase
-    if (t % 20 < 5) {
+    if (t % 30 < 5) {
       // zerfallen erlaubt
     } else {
       return; // Pause
@@ -243,7 +259,7 @@ class Branch {
     }
 
     for (let p of this.points) {
-      if (random() < 0.05 * fade) {
+      if (random() < 0.01 * fade) {
         fill(
           0,
           255,
@@ -268,7 +284,7 @@ class Branch {
       angle: random(-PI / 3, PI / 3),
       tilt: random(-PI / 6, PI / 6),
       length: random(3, 10),
-      maxLength: random(20, 100),
+      maxLength: random(50, 150),
       growing: true,
       dir: this.dir.copy(),
       autumnColor: color(random(120, 180), random(60, 120), 0),
