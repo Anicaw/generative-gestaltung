@@ -1,287 +1,280 @@
 
 class Branch {
-    constructor(pos, dir, thickness, depth, baseColor) {
-        this.pos = pos.copy()        // aktuelle Spitze
-        this.dir = dir.copy().normalize()
-        this.thickness = thickness // Stammdicke
-        this.depth = depth         // Verzweigungstiefe (für später)
+  constructor(pos, dir, thickness, depth, baseColor) {
+    this.pos = pos.copy()
+    this.dir = dir.copy().normalize()
+    this.thickness = thickness
+    this.depth = depth
+    this.points = [{ pos: this.pos.copy(), w: this.thickness }]
+    this.age = 0
+    this.alive = true
+    this.maxAge = int(random(180, 800)) - this.depth * 20
+    this.hasSplit = false
+    this.lastSplitAge = 0
+    this.leaves = []
 
-        this.points = []
-        this.points.push({ pos: this.pos.copy(), w: this.thickness })
+    this.baseColor = baseColor ? baseColor : TECH_COLORS.young
+    this.disintegrateStartFrame = null
+    this.disintegrating = false
+    this.disintegrateIndex = null
+  }
 
-        this.age = 0
-        this.alive = true
-        this.maxAge = int(random(180, 800)) - this.depth * 20
-        this.hasSplit = false
-        this.lastSplitAge = 0
+  grow() {
+    // Wachstum
 
-        this.leaves = []
+    // Stockendes Wachstum
+    if (this.alive && random() < 0.6) return;
 
-        if (baseColor) {
-            this.baseColor = baseColor
-        } else {
-            this.baseColor = TECH_COLORS.young
+    if (this.alive) {
+      let lifeRatio = this.age / this.maxAge
+      let step = map(lifeRatio, 0, 1, 1, 0.05)
+      let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
+      let bend = createVector(map(n, 0, 1, -0.1, 0.1), 0)
+      this.dir.add(bend).normalize()
+      this.dir.lerp(createVector(0, -1), 0.01).normalize()
+
+      for (let obs of obstacles) {
+        // Mittelpunkt des Rechtecks
+        let targetX = obs.x + obs.w / 2;
+        let targetY = obs.y;
+      
+        // Abstand zum Rechteck
+        let dX = targetX - this.pos.x;
+        let dY = targetY - this.pos.y;
+      
+        // Nur reagieren, wenn der Ast unterhalb oder innerhalb des Rechtecks ist
+        if (this.pos.y > obs.y && this.pos.y < obs.y + obs.h && abs(dX) < obs.w / 2 + 20) {
+          // Richtung zum oberen Punkt des Rechtecks
+          let attractDir = createVector(dX, dY);
+          attractDir.setMag(0.5); // Stärke der Anziehung
+          this.dir.lerp(attractDir, 0.2); // Sanft die Richtung anpassen
+          this.dir.normalize();
         }
+      }
+      
+      this.pos.add(p5.Vector.mult(this.dir, step))
+
+      let w = max(this.thickness * (1 - 0.002 * this.age * random(0.9, 1.1)), this.thickness * 0.7)
+      this.points.push({ pos: this.pos.copy(), w: w })
+
+      if (this.depth >= 1 && this.depth <= 3 && random() < 0.002) this.addLeaf()
+
+      for (let leaf of this.leaves) {
+        if (leaf.growing) {
+          leaf.length += 0.1
+          if (leaf.length > leaf.maxLength) leaf.growing = false
+        }
+      }
+
+      this.age++
+      if (this.age > this.maxAge) this.alive = false
+
+      this.trySplit()
     }
 
-    grow() {
-
-        // -----------------------------
-        // 1. Ast-Wachstum (nur wenn alive)
-        // -----------------------------
-        if (this.alive) {
-    
-            // wie schnell Äste wachsen
-            let lifeRatio = this.age / this.maxAge
-            let step = map(lifeRatio, 0, 1, 1, 0.05)
-    
-            let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
-    
-            let bend = createVector(
-                map(n, 0, 1, -0.1, 0.1),
-                0
-            )
-    
-            this.dir.add(bend).normalize()
-    
-            // damit Äste eher nach oben wachsen
-            let biasStrength = 0.01
-            this.dir.lerp(createVector(0, -1), biasStrength)
-            this.dir.normalize()
-    
-            // Neue Position
-            let newPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, step))
-            this.pos = newPos
-    
-            let w = this.thickness * (1 - 0.002 * this.age * random(0.9, 1.1))
-            w = max(w, this.thickness * 0.7)
-    
-            this.points.push({
-                pos: this.pos.copy(),
-                w: w
-            })
-    
-            // Zufällig ein Blatt anlegen (nur bei jüngeren Zweigen)
-            if (this.depth >= 1 && this.depth <= 3) {
-                if (random() < 0.002) {
-                    this.addLeaf()
-                }
-            }
-    
-            // Blatt-Wachstum (Größe)
-            for (let leaf of this.leaves) {
-                if (leaf.growing) {
-                    leaf.length += 0.1
-                    if (leaf.length > leaf.maxLength) {
-                        leaf.length = leaf.maxLength
-                        leaf.growing = false
-                    }
-                }
-            }
-    
-            this.age++
-    
-            if (this.age > this.maxAge) {
-                this.alive = false
-            }
-    
-            this.trySplit()
+    // Blatt-Physik
+    for (let leaf of this.leaves) {
+      if (allFinished && !leaf.falling) {
+        let t = frameCount - finishFrame
+        if (t > leaf.fallDelay) {
+          leaf.falling = true
+          leaf.vel = createVector(random(-0.3, 0.3), random(0.5, 1.5))
         }
-    
-        // ---------------------------------
-        // 2. Blatt-Physik (IMMER ausführen)
-        // ---------------------------------
-        for (let leaf of this.leaves) {
-    
-            // Wenn Herbst begonnen hat → Blatt loslassen
-            if (allFinished && !leaf.falling) {
-                let t = frameCount - finishFrame
-    
-                if (t > leaf.fallDelay) {
-                    leaf.falling = true
-    
-                    // kleine Startbewegung
-                    leaf.vel = createVector(
-                        random(-0.3, 0.3),
-                        random(0.5, 1.5)
-                    )
-                }
-            }
-    
-            // Wenn Blatt fällt → Physik anwenden
-            if (leaf.falling) {
-    
-                // Schwerkraft
-                leaf.vel.y += 0.05
-    
-                // leichter Wind
-                leaf.vel.x += random(-0.02, 0.02)
-    
-                // Position updaten
-                leaf.pos.add(leaf.vel)
-            }
-        }
-    
-        // ---------------------------------
-        // 3. Gefallene Blätter entfernen
-        // ---------------------------------
-        this.leaves = this.leaves.filter(leaf => leaf.pos.y < height + 100)
-    }
-    
+      }
 
-    trySplit() {
-        if (this.depth >= 4) return
-        if (this.hasSplit) return
-        if (this.age - this.lastSplitAge < 60) return
-
-        let n = noise(
-            this.pos.x * 0.02,
-            this.pos.y * 0.02,
-            frameCount * 0.01 + this.depth * 10
-        )
-
-        if (n > 0.5 + random(-0.1, 0.1)) {
-            this.split()
-            this.hasSplit = true
-        }
+      if (leaf.falling) {
+        leaf.vel.y += 0.05
+        leaf.vel.x += random(-0.02, 0.02)
+        leaf.pos.add(leaf.vel)
+      }
     }
 
-    split() {
-        // Zwei neue Richtungen erzeugen
-        let baseDir = this.dir.copy()
-        let spread = 50
+    this.leaves = this.leaves.filter(leaf => leaf.pos.y < height + 100)
 
-        let offset1 = createVector(
-            random(-spread, spread),
-            random(-spread, spread),
-            // random(-spread, spread)
-        )
-
-        let offset2 = createVector(
-            random(-spread, spread),
-            random(-spread, spread),
-            // random(-spread, spread)
-        )
-
-        let dir1 = p5.Vector.add(baseDir, offset1).normalize()
-        let dir2 = p5.Vector.add(baseDir, offset2).normalize()
-
-        // Dicke nimmt ab
-        // let newThickness = this.thickness * 0.7
-        let lastPoint = this.points[this.points.length - 1]
-        let currentThickness = lastPoint.w
-        let newThickness = currentThickness * 0.8
-
-        // Farbe am Abzweigungspunkt bestimmen (aus Alter)
-        let ageRatio = this.age / this.maxAge
-        let currentColor = lerpColor(
-            TECH_COLORS.young,
-            TECH_COLORS.mid,
-            ageRatio
-        )
-
-
-        let backOffset = p5.Vector.mult(this.dir, -5)
-        let splitPos = p5.Vector.add(this.pos, backOffset)
-
-        let b1 = new Branch(splitPos, dir1, newThickness, this.depth + 1, currentColor)
-        let b2 = new Branch(splitPos, dir2, newThickness, this.depth + 1, currentColor)
-
-        this.newChildren = [b1, b2]
+    // Zerfall starten
+    if (this.disintegrateStartFrame !== null && frameCount >= this.disintegrateStartFrame) {
+      this.disintegrating = true
     }
 
-    display() {
-        if (this.points.length < 2) return
-    
-        // Farb-Logik (wie vorher)
-        let ageRatio = constrain(this.age / this.maxAge, 0, 1)
-    
-        let currentColor
+    if (this.disintegrating) {
+      if (this.points.length > 0) this.disintegrate()
+      else {
+        this.alive = false
+        this.disintegrating = false
+      }
+    }
 
-        if (ageRatio < 0.5) {
-          currentColor = lerpColor(
-            TECH_COLORS.young,
-            TECH_COLORS.mid,
-            ageRatio * 2
+    if (this.disintegrating) {
+      this.disintegrate();
+    }
+
+  }
+
+  trySplit() {
+    if (this.depth >= 4 || this.hasSplit || this.age - this.lastSplitAge < 60) return
+    if (noise(this.pos.x * 0.02, this.pos.y * 0.02, frameCount * 0.01 + this.depth * 10) > 0.5 + random(-0.1, 0.1)) {
+      this.split()
+      this.hasSplit = true
+    }
+  }
+
+  split() {
+    let baseDir = this.dir.copy()
+    let spread = 50
+    let dir1 = p5.Vector.add(baseDir, createVector(random(-spread, spread), random(-spread, spread))).normalize()
+    let dir2 = p5.Vector.add(baseDir, createVector(random(-spread, spread), random(-spread, spread))).normalize()
+    let lastPoint = this.points[this.points.length - 1]
+    let newThickness = lastPoint.w * 0.8
+    let ageRatio = this.age / this.maxAge
+    let currentColor = lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio)
+    let splitPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, -5))
+    this.newChildren = [
+      new Branch(splitPos, dir1, newThickness, this.depth + 1, currentColor),
+      new Branch(splitPos, dir2, newThickness, this.depth + 1, currentColor)
+    ]
+  }
+
+  disintegrate() {
+
+    // if (frameCount % 3 !== 0) return;
+
+    let t = frameCount - this.disintegrateStartFrame;
+
+    // kurze aktive Phase
+    if (t % 20 < 5) {
+      // zerfallen erlaubt
+    } else {
+      return; // Pause
+    }
+
+
+    let ageRatio = constrain(this.age / this.maxAge, 0, 1);
+
+    let currentColor = ageRatio < 0.5
+      ? lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio * 2)
+      : lerpColor(TECH_COLORS.mid, TECH_COLORS.old, (ageRatio - 0.5) * 2);
+
+    if (allFinished) {
+      let t = constrain((frameCount - finishFrame) / 200, 0, 1);
+      currentColor = lerpColor(currentColor, TECH_COLORS.dead, t);
+    }
+
+
+    // Initialisierung
+    if (this.disintegrateIndex === null) {
+      this.disintegrateIndex = this.points.length - 1;
+    }
+
+    // Wenn keine Punkte mehr übrig → Ast als tot markieren
+    if (this.points.length === 0) {
+      this.alive = false;
+      return;
+    }
+
+    let p = this.points[this.disintegrateIndex];
+
+    // Partikel erzeugen
+    if (random() < 0.1) {
+      let count = int(random(1, 12));
+      for (let i = 0; i < count; i++) {
+        particles.push(
+          new Particle(
+            p.pos.x,
+            p.pos.y,
+            random(6, 180),
+            currentColor
           )
-        } else {
-          currentColor = lerpColor(
-            TECH_COLORS.mid,
-            TECH_COLORS.old,
-            (ageRatio - 0.5) * 2
-          )
-        }
-        
-    
-        if (allFinished) {
-            let t = constrain((frameCount - finishFrame) / 200, 0, 1)
-            currentColor = lerpColor(currentColor, TECH_COLORS.dead, t)
-              
-        }
-    
-        stroke(currentColor)
-        noFill()
-    
-        // WICHTIG: alle Segmente neu zeichnen
-        for (let i = 0; i < this.points.length - 1; i++) {
-            let a = this.points[i]
-            let b = this.points[i + 1]
-          
-            for (let k = 0; k < 2; k++) {
-              strokeWeight(a.w * (1 - k * 0.3))
-              line(
-                a.pos.x + random(-0.3, 0.3),
-                a.pos.y,
-                b.pos.x + random(-0.3, 0.3),
-                b.pos.y
-              )
-            }
-          }
+        );
 
-          for (let p of this.points) {
-            if (random() < 0.05) {
-              fill(TECH_COLORS.glow)
-              noStroke()
-              circle(p.pos.x, p.pos.y, random(2, 5))
-            }
-          }
-          
-          
-    
-        for (let leaf of this.leaves) {
-            // nur zeichnen, wenn noch im Bild
-            if (leaf.pos.y < height + 50) {
-                drawLeaf2D(leaf)
-            }
-        }
-              
-    }
-    
-
-    addLeaf() {
-        let p = this.pos.copy()
-
-        // Blatt wächst senkrecht leicht vom Ast weg
-        let angle = random(-PI / 3, PI / 3)
-        let tilt = random(-PI / 6, PI / 6)
-
-        this.leaves.push({
-            pos: p,
-            angle: angle,
-            tilt: tilt,
-            length: random(3, 10),   // Startlänge
-            maxLength: random(20, 100),
-            growing: true,
-            dir: this.dir.copy(),
-            autumnColor: color(
-                random(120, 180),
-                random(60, 120),
-                0
-            ),
-            falling: false,
-            vel: createVector(0, 0),
-            fallDelay: int(random(0, 120)) 
-        })
+      }
     }
 
+    // Punkt entfernen
+    this.points.splice(this.disintegrateIndex, 1);
+
+    // Index runterzählen, niemals < 0
+    this.disintegrateIndex--;
+    if (this.disintegrateIndex < 0) {
+      this.disintegrateIndex = 0;
+    }
+
+    // Prüfen, ob Ast fertig zerfallen ist
+    if (this.points.length === 0) {
+      this.alive = false;
+    }
+  }
+
+
+  display() {
+    if (this.points.length < 2) return
+    let ageRatio = constrain(this.age / this.maxAge, 0, 1)
+    let currentColor = ageRatio < 0.5 ?
+      lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio * 2) :
+      lerpColor(TECH_COLORS.mid, TECH_COLORS.old, (ageRatio - 0.5) * 2)
+
+    if (allFinished) {
+      let t = constrain((frameCount - finishFrame) / 200, 0, 1)
+      currentColor = lerpColor(currentColor, TECH_COLORS.dead, t)
+    }
+
+    stroke(currentColor)
+    noFill()
+    for (let i = 0; i < this.points.length - 1; i++) {
+      let a = this.points[i]
+      let b = this.points[i + 1]
+      for (let k = 0; k < 2; k++) {
+        strokeWeight(a.w * (1 - k * 0.3))
+        line(a.pos.x + random(-0.3, 0.3), a.pos.y, b.pos.x + random(-0.3, 0.3), b.pos.y)
+      }
+    }
+
+    // Innenliegende Ströme verblassen am Lebensende
+    let fade = 1;
+
+    // Wenn Wachstum vorbei ist → langsam ausblenden
+    if (!this.alive) {
+      fade = constrain(1 - (frameCount - this.maxAge) / 200, 0, 1);
+    }
+
+    // Globales Ende (alle Äste tot)
+    if (allFinished) {
+      let t = constrain((frameCount - finishFrame) / 200, 0, 1);
+      fade = 1 - t;
+    }
+
+    for (let p of this.points) {
+      if (random() < 0.05 * fade) {
+        fill(
+          0,
+          255,
+          255,
+          120 * fade
+        );
+        noStroke();
+        circle(p.pos.x, p.pos.y, random(2, 5) * fade);
+      }
+    }
+
+
+    for (let leaf of this.leaves) {
+      if (leaf.pos.y < height + 50) drawLeaf2D(leaf)
+    }
+  }
+
+  addLeaf() {
+    let p = this.pos.copy()
+    this.leaves.push({
+      pos: p,
+      angle: random(-PI / 3, PI / 3),
+      tilt: random(-PI / 6, PI / 6),
+      length: random(3, 10),
+      maxLength: random(20, 100),
+      growing: true,
+      dir: this.dir.copy(),
+      autumnColor: color(random(120, 180), random(60, 120), 0),
+      falling: false,
+      vel: createVector(0, 0),
+      fallDelay: int(random(0, 120))
+    })
+  }
 }
