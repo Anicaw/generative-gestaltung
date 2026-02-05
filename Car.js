@@ -6,7 +6,7 @@ class Car {
       this.speed = random(1, 5)
       this.size = random(10, 20)
       this.phase = random(TWO_PI)
-      this.windStrength = 0.15
+      this.windStrength = 2.0
       this.windRadius = 200
     }
   
