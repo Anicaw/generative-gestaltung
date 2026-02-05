@@ -1,3 +1,4 @@
+let trees = []
 let branches = []
 let particles = []
 
@@ -33,6 +34,7 @@ function setup() {
   // Startpos und -richtung von Stamm
   let startPos = createVector(width / 2, height - 50)
   let startDir = createVector(0, -1)
+  trees.push(new Branch(startPos, startDir, 20, 0))
 
   let root = new Branch(startPos, startDir, random(25, 50), 0)
   branches.push(root)
@@ -113,6 +115,16 @@ function draw() {
     finalColor = TECH_COLORS.dead
     startDisintegration()
   }
+
+    // Neuen Baum pflanzen, wenn keine Bäume mehr existieren
+    if (branches.length === 0) {
+      let newX = width / 2 + random(-100, 100)
+      let newPos = createVector(newX, height - 50)
+      let newDir = createVector(0, -1)
+      let newRoot = new Branch(newPos, newDir, random(20, 40), 0)
+      branches.push(newRoot)
+      allFinished = false // Reset, damit der neue Baum wächst
+    }
 
   // Äste aktualisieren
   for (let i = branches.length - 1; i >= 0; i--) {
