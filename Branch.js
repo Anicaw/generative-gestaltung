@@ -13,7 +13,7 @@ class Branch {
     this.lastSplitAge = 0
     this.leaves = []
 
-    this.baseColor = baseColor ? baseColor : TECH_COLORS.young
+    this.baseColor = baseColor ? baseColor : treeColors.young
     this.disintegrateStartFrame = null
     this.disintegrating = false
     this.disintegrateIndex = null
@@ -38,32 +38,17 @@ class Branch {
 
   grow() {
     // Wachstum
-
     // Stockendes Wachstum
-    if (this.alive && random() < 0.6) return;
+    if (this.alive && random() < 0.5) return;
 
     if (this.alive) {
-      // // Wind vom Auto
-      // let d = dist(this.pos.x, this.pos.y, car.x, car.y)
-
-      // if (d < car.windRadius) {
-      //   let strength = map(d, 0, car.windRadius, car.windStrength, 0)
-      //   let windDir = p5.Vector.sub(this.pos, createVector(car.x, car.y)).normalize()
-
-      //   // seitlicher Windstoß
-      //   this.dir.add(windDir.mult(strength)).normalize()
-      // }
-
-
       let lifeRatio = this.age / this.maxAge
-      // let step = map(lifeRatio, 0, 1, 1.5, 0.05)
       let speedFactor = 2  // 2 = doppelte Geschwindigkeit
       let step = map(lifeRatio, 0, 1, 1.5, 0.05) * speedFactor
       this.pos.add(p5.Vector.mult(this.growDir, step))
       let n = noise(this.pos.x * 0.01, this.pos.y * 0.01, frameCount * 0.01)
       let bend = createVector(map(n, 0, 1, -0.1, 0.1), 0)
       this.growDir.add(bend).normalize()
-      // this.dir.lerp(createVector(0, -1), 0.01).normalize()
       this.growDir.lerp(createVector(0, -1), 0.005)
 
       // Ruhelage langsam anpassen (nur wenn wachsend)
@@ -72,10 +57,6 @@ class Branch {
           this.restDir.lerp(this.growDir, 0.01)
         }
       }
-
-
-
-      // this.pos.add(p5.Vector.mult(this.dir, step))
 
       let w = max(this.thickness * (1 - 0.002 * this.age * random(0.9, 1.1)), this.thickness * 0.7)
       this.points.push({ pos: this.pos.copy(), w: w })
@@ -90,7 +71,11 @@ class Branch {
       }
 
       this.age++
-      if (this.age > this.maxAge) this.alive = false
+      // if (this.age > this.maxAge) this.alive = false
+      if (this.age > this.maxAge) {
+        this.alive = false
+        this.deathFrame = frameCount
+      }
 
       this.trySplit()
     }
@@ -105,39 +90,28 @@ class Branch {
         }
       }
 
-      // if (leaf.falling) {
-      //   leaf.vel.y += 0.05
-      //   leaf.vel.x += random(-0.02, 0.02)
-      //   leaf.pos.add(leaf.vel)
-      // }
-
       if (leaf.falling) {
         // Initialisiere worldPos, falls noch nicht vorhanden
         if (!leaf.worldPos) {
-            let idx = constrain(leaf.anchorIndex, 0, this.points.length - 1);
-            let p = this.points[idx] ? this.points[idx].pos.copy() : createVector(0, 0);
-            leaf.worldPos = p;
+          let idx = constrain(leaf.anchorIndex, 0, this.points.length - 1);
+          let p = this.points[idx] ? this.points[idx].pos.copy() : createVector(0, 0);
+          leaf.worldPos = p;
         }
         // Bewegung anwenden
         leaf.worldPos.add(leaf.vel);
-    }
-    
-
-      
+      }
     }
 
-    // this.leaves = this.leaves.filter(leaf => leaf.pos.y < height + 100)
     this.leaves = this.leaves.filter(leaf => {
-      let y;
+      let y
       if (leaf.falling) {
-        y = leaf.worldPos ? leaf.worldPos.y : 0; // falls worldPos noch nicht initialisiert
+        y = leaf.worldPos ? leaf.worldPos.y : 0 // falls worldPos noch nicht initialisiert
       } else {
         let idx = constrain(leaf.anchorIndex, 0, this.points.length - 1);
-        y = this.points[idx] ? this.points[idx].pos.y : 0; // falls points noch nicht existiert
+        y = this.points[idx] ? this.points[idx].pos.y : 0 // falls points noch nicht existiert
       }
       return y < height + 100;
     });
-    
 
     // Zerfall starten
     if (this.disintegrateStartFrame !== null && frameCount >= this.disintegrateStartFrame) {
@@ -164,7 +138,6 @@ class Branch {
 
     this.applyCarWind(car)
     this.updateWind()
-
   }
 
   trySplit() {
@@ -179,7 +152,7 @@ class Branch {
   split() {
     let baseDir = this.dir.copy()
 
-    // Zufällige leichte Abweichung von ±15 Grad
+    // Zufällige leichte Abweichung
     let angleOffset1 = radians(random(-70, 70))
     let angleOffset2 = radians(random(-70, 70))
     // Kindrichtungen
@@ -189,7 +162,7 @@ class Branch {
     let lastPoint = this.points[this.points.length - 1]
     let newThickness = lastPoint.w * 0.9
     let ageRatio = this.age / this.maxAge
-    let currentColor = lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio)
+    let currentColor = lerpColor(treeColors.young, treeColors.mid, ageRatio)
     let splitPos = p5.Vector.add(this.pos, p5.Vector.mult(this.dir, -5))
     this.newChildren = [
       new Branch(splitPos, dir1, newThickness, this.depth + 1, currentColor),
@@ -212,7 +185,6 @@ class Branch {
     // Grundrichtung vom Auto
     let windDir = p5.Vector.sub(this.pos, createVector(car.x, car.y))
     windDir.normalize()
-
 
     // Turbulenz
     let n = noise(
@@ -238,69 +210,72 @@ class Branch {
   }
 
 
-
   disintegrate() {
     let t = frameCount - this.disintegrateStartFrame;
+    let speed = 4; // 🔥 höher = schnellerer Zerfall
 
-    // kurze aktive Phase
-    if (t % 30 < 5) {
-      // zerfallen erlaubt
-    } else {
-      return; // Pause
-    }
+    // OPTIONAL: Bremse raus → schneller
+    if (t % 30 >= 5) return
 
-
-    let ageRatio = constrain(this.age / this.maxAge, 0, 1);
+    let ageRatio = constrain(this.age / this.maxAge, 0, 1)
 
     let currentColor = ageRatio < 0.5
-      ? lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio * 2)
-      : lerpColor(TECH_COLORS.mid, TECH_COLORS.old, (ageRatio - 0.5) * 2);
+      ? lerpColor(treeColors.young, treeColors.mid, ageRatio * 2)
+      : lerpColor(treeColors.mid, treeColors.old, (ageRatio - 0.5) * 2)
 
     if (allFinished) {
-      let t = constrain((frameCount - finishFrame) / 200, 0, 1);
-      currentColor = lerpColor(currentColor, TECH_COLORS.dead, t);
+      let tt = constrain((frameCount - finishFrame) / 200, 0, 1)
+      currentColor = lerpColor(currentColor, treeColors.dead, tt)
     }
-
 
     // Initialisierung
     if (this.disintegrateIndex === null) {
-      this.disintegrateIndex = this.points.length - 1;
+      this.disintegrateIndex = this.points.length - 1
     }
 
-    // Wenn keine Punkte mehr übrig → Ast als tot markieren
-    if (this.points.length === 0) {
-      this.alive = false;
-      return;
-    }
+    for (let i = 0; i < speed; i++) {
+      if (this.disintegrateIndex < 0 || this.points.length === 0) break
 
-    let p = this.points[this.disintegrateIndex];
+      let p = this.points[this.disintegrateIndex]
 
-    // Partikel erzeugen
-    if (random() < 0.1) {
-      let count = int(random(1, 12));
-      for (let i = 0; i < count; i++) {
+      // 🔁 BEND wie im display()
+      let base = this.points[0].pos;
+      let distFromBase = p5.Vector.sub(p.pos, base).mag()
+      
+      let bendDir = p5.Vector.sub(this.dir, this.restDir)
+      let bendAmount = bendDir.mag();
+      
+      let normal = createVector(
+        -this.restDir.y,
+        this.restDir.x
+      );
+      
+      let bendOffset = p5.Vector.mult(
+        normal,
+        distFromBase * bendAmount * 0.15
+      );
+      
+      let worldPos = p5.Vector.add(p.pos, bendOffset)
+      
+      // Partikel an sichtbarer Astposition
+      if (random() < 0.25) {
         particles.push(
           new Particle(
-            p.pos.x,
-            p.pos.y,
-            random(6, 180),
+            worldPos.x + random(-2, 2),
+            worldPos.y + random(-2, 2),
+            random(80, 160),
             currentColor
           )
         );
-
       }
+      
+
+
+      // Punkt entfernen
+      this.points.splice(this.disintegrateIndex, 1);
+      this.disintegrateIndex--;
     }
 
-    // Punkt entfernen
-    this.points.splice(this.disintegrateIndex, 1);
-
-    // Index runterzählen, niemals < 0
-    this.disintegrateIndex--;
-    if (this.disintegrateIndex < 0) {
-      this.disintegrateIndex = 0;
-    }
-
-    // Prüfen, ob Ast fertig zerfallen ist
     if (this.points.length === 0) {
       this.alive = false;
     }
@@ -321,12 +296,12 @@ class Branch {
 
     let ageRatio = constrain(this.age / this.maxAge, 0, 1)
     let currentColor = ageRatio < 0.5 ?
-      lerpColor(TECH_COLORS.young, TECH_COLORS.mid, ageRatio * 2) :
-      lerpColor(TECH_COLORS.mid, TECH_COLORS.old, (ageRatio - 0.5) * 2)
+      lerpColor(treeColors.young, treeColors.mid, ageRatio * 2) :
+      lerpColor(treeColors.mid, treeColors.old, (ageRatio - 0.5) * 2)
 
     if (allFinished) {
       let t = constrain((frameCount - finishFrame) / 200, 0, 1)
-      currentColor = lerpColor(currentColor, TECH_COLORS.dead, t)
+      currentColor = lerpColor(currentColor, treeColors.dead, t)
     }
 
     stroke(currentColor)
@@ -360,8 +335,8 @@ class Branch {
     let fade = 1;
 
     // Wenn Wachstum vorbei ist → langsam ausblenden
-    if (!this.alive) {
-      fade = constrain(1 - (frameCount - this.maxAge) / 200, 0, 1);
+    if (!this.alive && this.deathFrame !== undefined) {
+      fade = constrain(1 - (frameCount - this.deathFrame) / 200, 0, 1)
     }
 
     // Globales Ende (alle Äste tot)
@@ -370,19 +345,28 @@ class Branch {
       fade = 1 - t;
     }
 
+// für den Glow
     for (let p of this.points) {
-      if (random() < 0.01 * fade) {
-        fill(
-          0,
-          255,
-          255,
-          120 * fade
-        );
-        noStroke();
-        circle(p.pos.x, p.pos.y, random(2, 5) * fade);
+      if (random() < 0.04 * fade) {
+    
+        let distFromBase = p5.Vector.sub(p.pos, base).mag()
+        let glowOffset = p5.Vector.mult(
+          normal,
+          distFromBase * bendAmount * 0.15
+        )
+    
+        let glowPos = p5.Vector.add(p.pos, glowOffset)
+    
+        fill(0, 255, 255, 120 * fade)
+        noStroke()
+        circle(
+          glowPos.x,
+          glowPos.y,
+          random(2, 5) * fade
+        )
       }
     }
-
+    
 
     // for (let leaf of this.leaves) {
     //   if (leaf.pos.y < height + 50) drawLeaf2D(leaf)
@@ -401,7 +385,7 @@ class Branch {
         })
       }
     }
-    
+
   }
 
   addLeaf() {
@@ -438,25 +422,25 @@ class Branch {
   drawAttachedLeaf(leaf) {
     let idx = constrain(leaf.anchorIndex, 0, this.points.length - 1)
     let p = this.points[idx].pos
-  
+
     let base = this.points[0].pos
     let distFromBase = p5.Vector.sub(p, base).mag()
-  
+
     let bendDir = p5.Vector.sub(this.dir, this.restDir)
     let bendAmount = bendDir.mag()
-  
+
     let normal = createVector(
       -this.restDir.y,
       this.restDir.x
     )
-  
+
     let bendOffset = p5.Vector.mult(
       normal,
       distFromBase * bendAmount * 0.15
     )
-  
+
     let leafPos = p5.Vector.add(p, bendOffset)
-  
+
     drawLeaf2D({
       pos: leafPos,
       dir: this.dir,
@@ -465,5 +449,5 @@ class Branch {
       autumnColor: leaf.autumnColor
     })
   }
-  
+
 }

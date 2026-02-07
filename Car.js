@@ -4,10 +4,11 @@ class Car {
       this.baseY = random(50, 150)     // oberer Bildschirmbereich
       this.y = this.baseY
       this.speed = random(1, 5)
-      this.size = random(10, 20)
+      this.size = random(100, 200)
       this.phase = random(TWO_PI)
       this.windStrength = 2.0
-      this.windRadius = 200
+      this.windRadius = 400
+      this.img = carimg
     }
   
     update() {
@@ -26,8 +27,13 @@ class Car {
   
     display() {
       noStroke()
-      fill(0, 255, 255, 180)   // Neon-Cyan, passt zu deinem Stil
-      circle(this.x, this.y, this.size)
+      image(
+        this.img,
+        this.x,
+        this.y,
+        this.size * 2,
+        this.size * 2
+      )
     }
   }
   

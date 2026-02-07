@@ -1,31 +1,34 @@
-let trees = []
 let branches = []
 let particles = []
-
-let car
 
 let allFinished = false
 let finishFrame = 0
 let finalColor
-let TECH_COLORS = {}
+let treeColors = {}
 
-var bgimg
+let bgimg
+let carimg
+
+// Nebel
+let fogLayers = []
+let fogGraphics
+
+let car
 
 function preload() {
-  // bgimg = loadImage('./images/retro_background.jpg')
   bgimg = loadImage('./images/bg-retro.jpg')
+  carimg = loadImage('./images/car.png')
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight)
   frameRate(60)
-  TECH_COLORS = {
+  treeColors = {
     young: color(0, 255, 220),   // Neon Cyan
     mid: color(180, 80, 255),    // Electric Purple
     old: color(255, 60, 180),    // Magenta
     dead: color(40, 20, 60),     // Dunkles Violett
-    leaf: color(0, 255, 180),
-    glow: color(0, 255, 255, 120)
+    leaf: color(0, 255, 180)
   }
   image(bgimg, 0, 0, width, height)
 
@@ -34,10 +37,27 @@ function setup() {
   // Startpos und -richtung von Stamm
   let startPos = createVector(width / 2, height - 50)
   let startDir = createVector(0, -1)
-  trees.push(new Branch(startPos, startDir, 20, 0))
 
   let root = new Branch(startPos, startDir, random(25, 50), 0)
   branches.push(root)
+  
+  fogGraphics = createGraphics(width, height)
+  fogGraphics.noStroke()
+
+  // mehrere Ebenen des Nebels, damit es realistischer aussieht
+  let layerConfigs = [
+    { count: 25, minSize: 150, maxSize: 300, speed: 0.7 }, // background wisps
+    { count: 20, minSize: 300, maxSize: 500, speed: 0.3 }, // mid fog
+    { count: 15, minSize: 400, maxSize: 700, speed: 0.2 }, // foreground cloud
+  ];
+
+  for (let cfg of layerConfigs) {
+    let layer = []
+    for (let i = 0; i < cfg.count; i++) {
+      layer.push(new FogPatch(cfg.minSize, cfg.maxSize, cfg.speed));
+    }
+    fogLayers.push(layer);
+  }
 }
 
 function drawLeaf2D(leaf) {
@@ -53,28 +73,11 @@ function drawLeaf2D(leaf) {
   let theta = atan2(dir.y, dir.x)
   rotate(theta + angle)
 
-  let baseLeafColor = TECH_COLORS.leaf
-  drawingContext.shadowColor = TECH_COLORS.glow
-
-  let leafColor = baseLeafColor
-  if (allFinished) {
-    let delay = 60
-    let t = constrain((frameCount - finishFrame - delay) / 200, 0, 1)
-    leafColor = lerpColor(baseLeafColor, leaf.autumnColor, t)
-  }
-
-  fill(leafColor)
-  drawingContext.shadowBlur = 5
-  drawingContext.shadowColor = color(0, 255, 255, 100)
-
+  fill(treeColors.leaf)
   strokeWeight(2)
-  stroke(TECH_COLORS.leaf)
+  stroke(treeColors.leaf)
   line(0, 0, 0, -length)
-
-  fill(TECH_COLORS.glow)
   circle(0, -length, 5)
-  rotate(sin(frameCount * 0.02 + x * 0.01) * 0.1)
-
   pop()
 }
 
@@ -82,6 +85,16 @@ function startDisintegration() {
   // Alle Äste gleichzeitig zerfallen lassen
   for (let branch of branches) {
     branch.disintegrateStartFrame = frameCount
+  }
+}
+
+function drawFog() {
+  fogGraphics.clear();
+  for (let layer of fogLayers) {
+    for (let f of layer) {
+      f.update();
+      f.draw(fogGraphics);
+    }
   }
 }
 
@@ -94,6 +107,8 @@ function draw() {
   textSize(20)
   textAlign(LEFT, TOP)
   text("FPS: " + floor(frameRate()), 10, 10)
+
+
 
   car.update()
   car.display()
@@ -112,7 +127,7 @@ function draw() {
   if (!anyAlive && !allFinished) {
     allFinished = true
     finishFrame = frameCount
-    finalColor = TECH_COLORS.dead
+    finalColor = treeColors.dead
     startDisintegration()
   }
 
@@ -155,4 +170,7 @@ function draw() {
       particles.splice(i, 1)
     }
   }
+
+  drawFog()
+  image(fogGraphics, 0, 0)
 }
