@@ -3,11 +3,16 @@ let particles = []
 
 let allFinished = false
 let finishFrame = 0
-let finalColor
+// let finalColor
 let treeColors = {}
 
+// Bilder
 let bgimg
 let carimg
+
+//Sound
+let cracking
+let scifi
 
 // Nebel
 let fogLayers = []
@@ -18,11 +23,18 @@ let car
 function preload() {
   bgimg = loadImage('./images/bg-retro.jpg')
   carimg = loadImage('./images/car.png')
+  cracking = loadSound('./sounds/cracking.mp3')
+  scifi = loadSound('./sounds/scifi.mp3')
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight)
   frameRate(60)
+  //sound
+  // scifi.setLoop(true)
+  // scifi.setVolume(0.4)
+  // scifi.play()
+
   treeColors = {
     young: color(0, 255, 220),   // Neon Cyan
     mid: color(180, 80, 255),    // Electric Purple
@@ -30,7 +42,10 @@ function setup() {
     dead: color(40, 20, 60),     // Dunkles Violett
     leaf: color(0, 255, 180)
   }
-  image(bgimg, 0, 0, width, height)
+  // Hintergrundcanvas erstellen
+  bg = createGraphics(width, height)
+  bg.colorMode(RGB)
+  drawBgImageOnce(bg)
 
   car = new Car()
 
@@ -40,7 +55,7 @@ function setup() {
 
   let root = new Branch(startPos, startDir, random(25, 50), 0)
   branches.push(root)
-  
+
   fogGraphics = createGraphics(width, height)
   fogGraphics.noStroke()
 
@@ -57,6 +72,23 @@ function setup() {
       layer.push(new FogPatch(cfg.minSize, cfg.maxSize, cfg.speed));
     }
     fogLayers.push(layer);
+  }
+}
+
+function startScreen() {
+  background(0)
+  fill('white')
+  textFont("Orbitron")
+  textSize(30)
+  text('Klicke, um die nie da gewesene Zukunft zu starten!', windowWidth / 3.5, 200);
+}
+
+let started = false
+function mousePressed() {
+  started = true
+  if (!scifi.isPlaying()) {
+    scifi.setVolume(0.2)
+    scifi.loop()
   }
 }
 
@@ -89,30 +121,56 @@ function startDisintegration() {
 }
 
 function drawFog() {
-  fogGraphics.clear();
+  fogGraphics.clear()
   for (let layer of fogLayers) {
     for (let f of layer) {
-      f.update();
-      f.draw(fogGraphics);
+      f.update()
+      f.draw(fogGraphics)
     }
   }
 }
 
+// damit Bilder nicht verzerrt dargestellt werden
+// START Code von ChatGPT
+function drawBgImageOnce(g) {
+  let imgAspect = bgimg.width / bgimg.height;
+  let canvasAspect = width / height;
+  let drawWidth, drawHeight;
+
+  if (canvasAspect > imgAspect) {
+    drawWidth = width;
+    drawHeight = width / imgAspect;
+  } else {
+    drawHeight = height;
+    drawWidth = height * imgAspect;
+  }
+
+  let x = 0;
+  let y = height - drawHeight;
+
+  g.push();
+  g.tint(90, 50);
+  g.image(bgimg, x, y, drawWidth, drawHeight);
+  g.noTint();
+  g.pop();
+}
+// ENDE Code von ChatGPT
+
 function draw() {
+  if (!started) {
+    startScreen()
+} else {
   image(bgimg, 0, 0, width, height)
 
   // Framerate anzeigen
-  fill(255)             // Weißer Text
+  fill(255)
   noStroke()
   textSize(20)
   textAlign(LEFT, TOP)
   text("FPS: " + floor(frameRate()), 10, 10)
 
-
-
   car.update()
   car.display()
-
 
   // Prüfen, ob noch irgendein Ast lebt
   let anyAlive = false
@@ -123,30 +181,32 @@ function draw() {
     }
   }
 
-  // Umschalten, wenn alle Äste fertig sind
+  // Wenn alle Äste fertig sind, Zerfall starten
   if (!anyAlive && !allFinished) {
     allFinished = true
     finishFrame = frameCount
-    finalColor = treeColors.dead
+    // finalColor = treeColors.dead
     startDisintegration()
   }
 
-    // Neuen Baum pflanzen, wenn keine Bäume mehr existieren
-    if (branches.length === 0) {
-      let newX = width / 2 + random(-100, 100)
-      let newPos = createVector(newX, height - 50)
-      let newDir = createVector(0, -1)
-      let newRoot = new Branch(newPos, newDir, random(20, 40), 0)
-      branches.push(newRoot)
-      allFinished = false // Reset, damit der neue Baum wächst
+  // Neuen Baum pflanzen, wenn keine Bäume mehr existieren
+  if (branches.length === 0) {
+    if (cracking.isPlaying()) {
+      cracking.stop()
     }
+    let newX = width / 2 + random(-100, 100)
+    let newPos = createVector(newX, height - 50)
+    let newDir = createVector(0, -1)
+    let newRoot = new Branch(newPos, newDir, random(20, 40), 0)
+    branches.push(newRoot)
+    allFinished = false // Reset, damit der neue Baum wächst
+  }
 
   // Äste aktualisieren
   for (let i = branches.length - 1; i >= 0; i--) {
     let b = branches[i]
     b.grow()
     b.display()
-
     // Neue Kinder sammeln
     if (b.newChildren) {
       for (let c of b.newChildren) {
@@ -154,8 +214,7 @@ function draw() {
       }
       b.newChildren = null
     }
-
-    // Entfernen, wenn Ast komplett zerfallen
+    // Entfernen, wenn Ast komplett zerfallen ist
     if (!b.alive && b.points.length === 0) {
       branches.splice(i, 1)
     }
@@ -173,4 +232,5 @@ function draw() {
 
   drawFog()
   image(fogGraphics, 0, 0)
+}
 }

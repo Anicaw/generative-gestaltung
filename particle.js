@@ -11,7 +11,7 @@ class Particle {
 
   update() {
     // Schwerkraft nach unten
-    this.vel.y += 0.05 // beschleunigt nach unten
+    this.vel.y += 0.05
     this.pos.add(this.vel)
     this.lifespan--
   }
@@ -23,9 +23,9 @@ class Particle {
       green(this.col),
       blue(this.col),
       this.lifespan
-    );
+    )
     fill(c)
-    rectMode(CENTER);
+    rectMode(CENTER)
     rect(this.pos.x, this.pos.y, this.size, this.size)
 
   }
